@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Site Switch Port Logger - Cisco Faceplate</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#020617;
+  --panel:#0b1220;
+  --panel-light:#111827;
+  --line:#243047;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --accent:#22c55e;
+  --warn:#f59e0b;
+  --down:#64748b;
+  --shut:#ef4444;
+  --err:#a855f7;
+  --poegreen:#22c55e;
+  --poeoff:#334155;
+  --poealt:#f59e0b;
+  --poefault:#ef4444;
+  --cyan:#38bdf8;
+  --chassis:#0f172a;
+  --chassis-edge:#1e293b;
+  --shadow:0 20px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
+  background:linear-gradient(180deg,#020617,#0f172a 55%,#020617);
+  color:var(--text);
+}
+header,footer{
+  background:rgba(15,23,42,.85);
+  backdrop-filter:blur(8px);
+  border-color:var(--line);
+}
+header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line)}
+footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var(--muted);font-size:12px}
+.container{max-width:1500px;margin:0 auto;padding:16px}
+.grid{display:grid;gap:16px}
+.topgrid{grid-template-columns:1.4fr .9fr;align-items:start}
+.maingrid{grid-template-columns:1.3fr .7fr;align-items:start}
+.card{
+  background:rgba(17,24,39,.96);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+}
+.card h2,.card h3{margin:0}
+.section{padding:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 12px;border:1px solid var(--line);border-radius:999px;
+  background:#0b1220;color:var(--muted);font-size:12px;
+}
+.btn{
+  border:1px solid var(--line);background:#0b1220;color:var(--text);
+  padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;transition:.15s;
+}
+.btn:hover{transform:translateY(-1px);border-color:#3b82f6}
+.btn.primary{background:#134e4a;border-color:#0f766e}
+.btn.green{background:#14532d;border-color:#166534}
+.btn.blue{background:#0f172a;border-color:#1d4ed8}
+.btn.warn{background:#451a03;border-color:#b45309}
+input,select,textarea{
+  width:100%;background:#0b1220;color:var(--text);
+  border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.08em}
+.legend{display:flex;flex-wrap:wrap;gap:10px}
+.key{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.sw{width:12px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.12)}
+
+/* === SWITCH CHASSIS === */
+.chassis-shell{
+  padding:16px;
+  background:linear-gradient(180deg,#090f1f,#050816);
+  border:2px solid #1f2937;
+  border-radius:20px;
+  overflow:auto;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.6), 0 10px 30px rgba(0,0,0,.45);
+  position:relative;
+}
+.chassis-shell::before{
+  content:'';position:absolute;inset:0;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0));
+  pointer-events:none;
+}
+.chassis-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;color:var(--muted);font-size:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.chassis-title{font-weight:700;color:#cbd5e1}
+.chassis-model{color:#94a3b8}
+
+/* === TOP STATUS BAR === */
+.status-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 10px;background:#070c15;border:1px solid #1f2937;
+  border-radius:12px;margin-bottom:14px;
+}
+.status-LED-group{display:flex;align-items:center;gap:6px}
+.status-LED-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
+.mode-toggle{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border:1px solid var(--line);border-radius:999px;
+  background:#0b1220;color:var(--text);font-size:11px;font-weight:600;
+  cursor:pointer;user-select:none;
+}
+.mode-toggle.active{border-color:#22c55e;background:#0f291a;color:#86efac}
+
+.led{
+  width:10px;height:10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 0 6px rgba(0,0,0,.4);
+}
+
+/* === PORT ROWS === */
+.port-chassis{
+  background:#0a0f1a;border:1px solid #1f2937;
+  border-radius:14px;padding:12px;
+}
+.port-row{display:grid;gap:6px;margin-bottom:6px}
+.port-row-24{grid-template-columns:repeat(24,minmax(26px,1fr))}
+.port-row-48{grid-template-columns:repeat(48,minmax(22px,1fr))}
+
+.port{
+  position:relative;
+  background:#111827;
+  border:1px solid #334155;
+  border-top-width:3px;
+  border-radius:10px;
+  min-height:48px;
+  padding:6px 4px 5px;
+  cursor:pointer;
+  transition:.15s;
+  user-select:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.port:hover{transform:translateY(-1px);border-color:#64748b}
+.port.active{box-shadow:0 0 0 2px rgba(56,189,248,.65);transform:scale(1.03)}
+
+.port .num{
+  font-size:10px;font-weight:700;text-align:center;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:#cbd5e1;margin-top:2px;
+}
+.port .led-area{
+  display:flex;align-items:center;justify-content:center;
+  height:18px;width:100%;
+}
+.port .plug-icon{
+  width:14px;height:8px;border-radius:2px;
+  border:1.5px solid #94a3b8;position:relative;opacity:.35;
+}
+.port .plug-icon::after{
+  content:'';position:absolute;right:-3px;top:1.5px;width:2.5px;height:5px;
+  border-radius:1px;background:#94a3b8;
+}
+
+/* === PORT STATES (STAT MODE) === */
+.state-none{border-top-color:var(--down);background:#0f172a}
+.state-none .port-led{background:#475569}
+.state-none .plug-icon{opacity:.2}
+
+.state-plug{border-top-color:var(--warn);background:linear-gradient(180deg,#111827,#0f172a)}
+.state-plug .port-led{background:var(--warn)}
+.state-plug .plug-icon{opacity:1}
+
+.state-link{border-top-color:var(--accent);background:linear-gradient(180deg,#11231a,#0f172a)}
+.state-link .port-led{background:var(--accent)}
+.state-link .plug-icon{opacity:1}
+
+.state-shutdown{border-top-color:var(--shut);background:linear-gradient(180deg,#2a1010,#0f172a)}
+.state-shutdown .port-led{background:var(--shut)}
+.state-shutdown .plug-icon{opacity:.9}
+
+.state-err{border-top-color:var(--err);background:linear-gradient(180deg,#24112d,#0f172a)}
+.state-err .port-led{background:var(--err)}
+.state-err .plug-icon{opacity:.9}
+
+/* === PORT STATES (POE MODE) === */
+.poe-off{border-top-color:var(--poeoff)}
+.poe-off .port-led{background:var(--poeoff)}
+
+.poe-on{border-top-color:var(--poegreen);background:linear-gradient(180deg,#11231a,#0f172a)}
+.poe-on .port-led{background:var(--poegreen)}
+
+.poe-denied{border-top-color:var(--poealt)}
+.poe-denied .port-led{background:var(--poealt);animation:poe-alt 1s infinite steps(2)}
+
+.poe-fault{border-top-color:var(--poefault)}
+.poe-fault .port-led{background:var(--poefault);animation:poe-blink .6s infinite}
+
+@keyframes poe-alt{0%{background:#f59e0b}50%{background:#475569}}
+@keyframes poe-blink{0%,100%{background:#ef4444}50%{background:#475569}}
+
+.port-led{
+  width:8px;height:8px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+}
+
+.badge{
+  display:inline-flex;align-items:center;padding:4px 8px;
+  border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent;
+}
+.b-link{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.28)}
+.b-plug{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
+.b-none{background:rgba(100,116,139,.12);color:#cbd5e1;border-color:rgba(100,116,139,.28)}
+.b-shut{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.28)}
+.b-err{background:rgba(168,85,247,.12);color:#e9d5ff;border-color:rgba(168,85,247,.28)}
+.b-poegreen{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.28)}
+.b-poeadm{background:rgba(100,116,139,.12);color:#cbd5e1;border-color:rgba(100,116,139,.28)}
+.b-poedenied{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
+.b-poefault{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.28)}
+
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:520px}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table thead th{
+  position:sticky;top:0;background:#050816;color:#94a3b8;
+  text-align:left;padding:12px;border-bottom:1px solid var(--line);
+  font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+}
+.table tbody td{padding:11px 12px;border-bottom:1px solid rgba(36,48,71,.65);vertical-align:middle}
+.table tbody tr:hover{background:rgba(30,41,59,.35);cursor:pointer}
+.table tbody tr.active{background:rgba(8,47,73,.45)}
+
+.small{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.four{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.stack{display:grid;gap:12px}
+textarea{min-height:84px;resize:vertical}
+
+@media(max-width:1200px){
+  .topgrid,.maingrid,.four,.three,.two{grid-template-columns:1fr}
+  .port-row-48{grid-template-columns:repeat(24,minmax(22px,1fr))}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container toolbar">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="width:10px;height:10px;border-radius:999px;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.14)"></div>
+        <h1 style="margin:0;font-size:18px">Site Switch Port Logger</h1>
+        <span class="pill">2-layer logging: cable + link + PoE</span>
+      </div>
+      <div class="small" style="margin-top:6px">Cisco-style faceplate with PoE mode toggle, 24/48-port models, Excel export.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="btn-export">Export Excel</button>
+      <button class="btn green" id="btn-save">Save Local</button>
+      <button class="btn blue" id="btn-load">Load Local</button>
+      <button class="btn warn" id="btn-reset">Reset Demo</button>
+    </div>
+  </div>
+</header>
+
+<div class="container grid" style="margin-top:16px">
+  <div class="card section topgrid grid">
+    <div class="stack">
+      <div class="toolbar" style="padding:0 2px 6px 2px">
+        <div>
+          <h2>Switch Face</h2>
+          <div class="small">Select model, then click ports to edit. Toggle PoE to see power state.</div>
+        </div>
+        <div class="legend">
+          <select id="model-select" style="min-width:180px">
+            <optgroup label="Catalyst 9200L (Compact)">
+              <option value="9200L-24P">C9200L-24P (24-port)</option>
+              <option value="9200L-48P">C9200L-48P (48-port)</option>
+            </optgroup>
+            <optgroup label="Catalyst 9200 (Standard)">
+              <option value="9200-24P">C9200-24P (24-port)</option>
+              <option value="9200-48P">C9200-48P (48-port)</option>
+            </optgroup>
+            <optgroup label="Catalyst 9300L (Compact)">
+              <option value="9300L-24P">C9300L-24P (24-port)</option>
+              <option value="9300L-48P">C9300L-48P (48-port)</option>
+            </optgroup>
+            <optgroup label="Catalyst 9300 (Standard)">
+              <option value="9300-24P">C9300-24P (24-port)</option>
+              <option value="9300-48P" selected>C9300-48P (48-port)</option>
+              <option value="9300-24UX">C9300-24UX (24-port multigig UPOE)</option>
+              <option value="9300-48UXM">C9300-48UXM (48-port multigig UPOE)</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="chassis-shell">
+        <div class="chassis-head">
+          <div>
+            <div class="chassis-title" id="chassis-title">Catalyst 9300 48-Port PoE+</div>
+            <div class="chassis-model" id="siteLabel">SITE: DEMO</div>
+          </div>
+          <div class="small mono" id="portCount">48 ports</div>
+        </div>
+
+        <div class="status-bar">
+          <div class="status-LED-group">
+            <div class="led" id="sys-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">SYS</div>
+          </div>
+          <div class="status-LED-group">
+            <div class="led" id="usb-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">USB</div>
+          </div>
+          <div class="status-LED-group">
+            <div class="led" id="mgmt-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">MGMT</div>
+          </div>
+          <div style="flex:1"></div>
+          <div class="mode-toggle active" id="mode-toggle">STAT</div>
+          <div class="status-LED-label">MODE</div>
+          <div class="small muted">PoE</div>
+        </div>
+
+        <div class="port-chassis">
+          <div class="port-row" id="port-row-top"></div>
+          <div class="port-row" id="port-row-bottom"></div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="key"><span class="sw" style="background:#475569"></span>No cable</div>
+        <div class="key"><span class="sw" style="background:#f59e0b"></span>Cable only</div>
+        <div class="key"><span class="sw" style="background:#22c55e"></span>Link up</div>
+        <div class="key"><span class="sw" style="background:#ef4444"></span>Shutdown</div>
+        <div class="key"><span class="sw" style="background:#22c55e"></span>PoE on</div>
+        <div class="key"><span class="sw" style="background:#f59e0b"></span>PoE denied</div>
+        <div class="key"><span class="sw" style="background:#ef4444"></span>PoE fault</div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card section" style="background:rgba(10,16,29,.85)">
+        <div class="toolbar" style="margin-bottom:10px">
+          <h2>Port Editor</h2>
+          <span class="pill mono" id="currentPort">Gi1/0/1</span>
+        </div>
+        <div class="two">
+          <div><label>Port</label><input id="port-id" type="number" min="1" max="48"></div>
+          <div><label>Site / Closet</label><input id="site-name" placeholder="HQ MDF"></div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div><label>Cable Present</label>
+            <select id="cable-present"><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select>
+          </div>
+          <div><label>Link State</label>
+            <select id="link-state"><option value="down">Down</option><option value="up">Up</option><option value="err">Err-disabled</option><option value="unknown">Unknown</option></select>
+          </div>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div><label>Admin State</label>
+            <select id="admin-state"><option value="up">Up</option><option value="down">Shutdown</option></select>
+          </div>
+          <div><label>Port Mode</label>
+            <select id="port-mode"><option value="access">Access</option><option value="trunk">Trunk</option><option value="other">Other</option></select>
+          </div>
+        </div>
+        <div class="three" style="margin-top:12px">
+          <div><label>VLAN</label><input id="vlan" type="number" min="1" max="4094" value="1"></div>
+          <div><label>Speed</label><input id="speed" placeholder="1G / 10G / auto"></div>
+          <div><label>Duplex</label><input id="duplex" placeholder="full / half / auto"></div>
+        </div>
+        <div class="three" style="margin-top:12px">
+          <div><label>Media Type</label>
+            <select id="media-type">
+              <option value="unknown">Unknown</option>
+              <option value="rj45">RJ45</option>
+              <option value="sfp">SFP</option>
+              <option value="combo">Combo</option>
+            </select>
+          </div>
+          <div><label>Cable Type</label>
+            <select id="cable-type">
+              <option value="unknown">Unknown</option>
+              <option value="cat5e">Cat5e</option>
+              <option value="cat6">Cat6</option>
+              <option value="cat6a">Cat6A</option>
+              <option value="mmf">MMF</option>
+              <option value="smf">SMF</option>
+              <option value="dac">DAC</option>
+            </select>
+          </div>
+          <div><label>Negotiated Speed</label>
+            <select id="nego-speed">
+              <option value="unknown">Unknown</option>
+              <option value="10m">10M</option>
+              <option value="100m">100M</option>
+              <option value="1g">1G</option>
+              <option value="2.5g">2.5G</option>
+              <option value="5g">5G</option>
+              <option value="10g">10G</option>
+              <option value="auto">Auto</option>
+            </select>
+          </div>
+        </div>
+        <div class="three" style="margin-top:12px">
+          <div><label>PoE State</label>
+            <select id="poe-state">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+              <option value="denied">Denied</option>
+              <option value="fault">Fault</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          <div><label>Location</label><input id="location" placeholder="Closet A / Rack 3"></div>
+          <div><label>Last Seen</label><input id="lastseen" placeholder="2026-06-01 22:00"></div>
+        </div>
+        <div style="margin-top:12px"><label>Description / Label</label><input id="desc" placeholder="Printer, AP, Phone, Camera..."></div>
+        <div class="three" style="margin-top:12px">
+          <div><label>Connected Device</label><input id="device" placeholder="AP-2F-01"></div>
+          <div><label>Neighbor Port</label><input id="neighbor" placeholder="Gi0/1"></div>
+          <div><label>MAC Address</label><input id="mac" placeholder="00:11:22:33:44:55"></div>
+        </div>
+        <div style="margin-top:12px"><label>Tech</label><input id="tech" placeholder="Initials"></div>
+        <div style="margin-top:12px"><label>Notes</label><textarea id="notes" placeholder="Anything useful about this port."></textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn primary" id="btn-apply">Save Port</button>
+          <button class="btn" id="btn-clear">Clear Fields</button>
+          <button class="btn" id="btn-next">Next Port</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card section maingrid grid">
+    <div class="stack">
+      <div class="toolbar">
+        <div>
+          <h2>Port Inventory</h2>
+          <div class="small">Green = link up / PoE on, amber = cable only / PoE denied, gray = empty, red = shutdown / fault.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="search" placeholder="Search port, label, device, MAC..." style="min-width:260px">
+          <select id="filter"><option value="all">All</option><option value="up">Link up</option><option value="plug">Cable only</option><option value="none">No cable</option><option value="shutdown">Shutdown</option><option value="poegreen">PoE on</option><option value="poedenied">PoE denied</option><option value="poefault">PoE fault</option><option value="unknown">Unknown</option></select>
+        </div>
+      </div>
+      <div class="tablewrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>Cable</th>
+              <th>Link</th>
+              <th>Admin</th>
+              <th>PoE</th>
+              <th>VLAN</th>
+              <th>Media</th>
+              <th>Cable Type</th>
+              <th>Speed</th>
+              <th>Label</th>
+              <th>Device</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card section" style="background:rgba(10,16,29,.85)">
+        <h2 style="margin-bottom:10px">Audit Mode Fields</h2>
+        <div class="small">Use this when you have switch access and want the richer report.</div>
+        <div style="margin-top:12px" class="stack">
+          <div class="pill">Suggested export columns include LLDP/CDP, native VLAN, trunking, PoE, speed/duplex, and MAC address.</div>
+          <div class="pill">PoE mode toggle shows power state instead of link state.</div>
+          <div class="pill">You can still add more fields later without changing the layout.</div>
+        </div>
+      </div>
+      <div class="card section" style="background:rgba(10,16,29,.85)">
+        <h3>Quick Stats</h3>
+        <div class="four" style="margin-top:12px">
+          <div class="pill"><strong id="stat-up">0</strong>&nbsp;Up</div>
+          <div class="pill"><strong id="stat-plug">0</strong>&nbsp;Cable</div>
+          <div class="pill"><strong id="stat-none">0</strong>&nbsp;Empty</div>
+          <div class="pill"><strong id="stat-shut">0</strong>&nbsp;Shutdown</div>
+        </div>
+        <div class="four" style="margin-top:8px">
+          <div class="pill"><strong id="stat-poegreen">0</strong>&nbsp;PoE</div>
+          <div class="pill"><strong id="stat-poedenied">0</strong>&nbsp;Denied</div>
+          <div class="pill"><strong id="stat-poefault">0</strong>&nbsp;Fault</div>
+          <div class="pill"><strong id="stat-poeadm">0</strong>&nbsp;Disabled</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>Two-layer logging: physical occupancy + electrical link + PoE, with Excel export for site records.</footer>
+<script>
+const key='site-switch-logger-v2';
+const models={
+  '9200L-24P':{name:'C9200L-24P',ports:24,rows:1},
+  '9200L-48P':{name:'C9200L-48P',ports:48,rows:2},
+  '9200-24P':{name:'C9200-24P',ports:24,rows:1},
+  '9200-48P':{name:'C9200-48P',ports:48,rows:2},
+  '9300L-24P':{name:'C9300L-24P',ports:24,rows:1},
+  '9300L-48P':{name:'C9300L-48P',ports:48,rows:2},
+  '9300-24P':{name:'C9300-24P',ports:24,rows:1},
+  '9300-48P':{name:'C9300-48P',ports:48,rows:2},
+  '9300-24UX':{name:'C9300-24UX UPOE',ports:24,rows:1},
+  '9300-48UXM':{name:'C9300-48UXM UPOE',ports:48,rows:2},
+};
+let model='9300-48P';
+let N=48;
+let db={}; 
+for(let i=1;i<=N;i++) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'unknown',ctype:'unknown',nego:'unknown',poe:'off',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''};
+let selected=1;
+let poeMode=false;
+const $=id=>document.getElementById(id);
+const portRowTop=$('port-row-top'), portRowBottom=$('port-row-bottom'), tbody=$('tbody');
+const titleMap={
+  '9200L-24P':'Catalyst 9200L 24-Port PoE+',
+  '9200L-48P':'Catalyst 9200L 48-Port PoE+',
+  '9200-24P':'Catalyst 9200 24-Port PoE+',
+  '9200-48P':'Catalyst 9200 48-Port PoE+',
+  '9300L-24P':'Catalyst 9300L 24-Port PoE+',
+  '9300L-48P':'Catalyst 9300L 48-Port PoE+',
+  '9300-24P':'Catalyst 9300 24-Port PoE+',
+  '9300-48P':'Catalyst 9300 48-Port PoE+',
+  '9300-24UX':'Catalyst 9300 24-Port Multigig UPOE',
+  '9300-48UXM':'Catalyst 9300 48-Port Multigig UPOE',
+};
+
+function stateClass(p){ 
+  if(p.admin==='down') return 'state-shutdown'; 
+  if(p.link==='up') return 'state-link'; 
+  if(p.link==='err') return 'state-err'; 
+  if(p.cable==='yes') return 'state-plug'; 
+  return 'state-none'; 
+}
+function poeStateClass(p){
+  if(p.poe==='on') return 'poe-on';
+  if(p.poe==='denied') return 'poe-denied';
+  if(p.poe==='fault') return 'poe-fault';
+  if(p.poe==='disabled') return 'state-shutdown';
+  return 'poe-off';
+}
+function layer1(p){ return p.cable==='yes' ? 'Cable' : p.cable==='no' ? 'Empty' : 'Unknown'; }
+function layer2(p){ return p.link==='up' ? 'Up' : p.link==='down' ? 'Down' : p.link==='err' ? 'Err' : 'Unknown'; }
+function poeLabel(p){ return p.poe==='on'?'On':p.poe==='denied'?'Denied':p.poe==='fault'?'Fault':p.poe==='disabled'?'Disabled':'Off'; }
+function badge(text, cls){ return `<span class="badge ${cls}">${text}</span>`; }
+function rowHtml(i,p){ 
+  const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':p.poe==='disabled'?'b-shut':'b-poeadm';
+  return `<tr data-i="${i}">
+    <td class="mono">Gi1/0/${i}</td>
+    <td>${badge(layer1(p), p.cable==='yes'?'b-plug':p.cable==='no'?'b-none':'b-none')}</td>
+    <td>${badge(layer2(p), p.link==='up'?'b-link':p.link==='err'?'b-err':p.link==='down'?'b-none':'b-none')}</td>
+    <td>${badge(p.admin==='down'?'Shutdown':'Up', p.admin==='down'?'b-shut':'b-link')}</td>
+    <td>${badge(poeLabel(p), poeBadge)}</td>
+    <td class="mono">${p.vlan||1}</td>
+    <td>${p.media.toUpperCase()}</td>
+    <td>${p.ctype.toUpperCase()}</td>
+    <td>${p.nego.toUpperCase()}</td>
+    <td>${p.desc||'<span class="muted">—</span>'}</td>
+    <td>${p.device||'<span class="muted">—</span>'}</td>
+    <td class="mono">${p.lastseen||'<span class="muted">—</span>'}</td>
+  </tr>`; 
+}
+function portDom(i,p){ 
+  const d=document.createElement('div');
+  const cls=poeMode ? poeStateClass(p) : stateClass(p);
+  d.className='port '+cls+(selected===i?' active':'');
+  d.id='port-'+i;
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>${i}</div>`;
+  const detail=poeMode ? `PoE: ${poeLabel(p)}` : `Cable: ${layer1(p)} | Link: ${layer2(p)}`;
+  d.title=`Gi1/0/${i} | ${detail}`;
+  d.onclick=()=>load(i);
+  return d; 
+}
+function renderPorts(){ 
+  portRowTop.innerHTML=''; portRowBottom.innerHTML='';
+  const is24= model.includes('24');
+  N=is24?24:48;
+  // Rebuild DB up to N if needed
+  for(let i=1;i<=N;i++){ if(!db[i]) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'unknown',ctype:'unknown',nego:'unknown',poe:'off',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''}; }
+  if(is24){
+    portRowTop.className='port-row port-row-24';
+    portRowBottom.style.display='none';
+    for(let i=1;i<=N;i++) portRowTop.appendChild(portDom(i,db[i]));
+  } else {
+    portRowTop.className='port-row port-row-48';
+    portRowBottom.style.display='flex';
+    for(let i=1;i<=N;i++){
+      if(i<=24) portRowTop.appendChild(portDom(i,db[i]));
+      else portRowBottom.appendChild(portDom(i,db[i]));
+    }
+  }
+}
+function renderTable(){ 
+  const q=$('search').value.toLowerCase().trim(), f=$('filter').value; 
+  tbody.innerHTML=''; 
+  for(let i=1;i<=N;i++){ 
+    const p=db[i]; 
+    const txt=`gi1/0/${i} ${Object.values(p).join(' ')}`.toLowerCase(); 
+    const state=(p.admin==='down')?'shutdown':(p.link==='up')?'up':(p.cable==='yes')?'plug':(p.cable==='no')?'none':'unknown';
+    const poeState=p.poe==='on'?'poegreen':p.poe==='denied'?'poedenied':p.poe==='fault'?'poefault':'unknown';
+    if(q && !txt.includes(q)) continue;
+    let match=false;
+    if(f==='all') match=true;
+    else if(f==='up') match=state==='up';
+    else if(f==='plug') match=state==='plug';
+    else if(f==='none') match=state==='none';
+    else if(f==='shutdown') match=state==='shutdown';
+    else if(f==='poegreen') match=poeState==='poegreen';
+    else if(f==='poedenied') match=poeState==='poedenied';
+    else if(f==='poefault') match=poeState==='poefault';
+    else if(f==='unknown') match=state==='unknown';
+    if(!match) continue;
+    const tr=document.createElement('tr'); 
+    tr.innerHTML=rowHtml(i,p); 
+    if(i===selected) tr.classList.add('active'); 
+    tr.onclick=()=>load(i); 
+    tbody.appendChild(tr);
+  } 
+  updateStats(); 
+}
+function updateStats(){ 
+  let up=0,plug=0,none=0,shut=0,poegreen=0,poedenied=0,poefault=0,poeadm=0;
+  for(let i=1;i<=N;i++){ 
+    const p=db[i]; 
+    if(p.admin==='down') shut++; else if(p.link==='up') up++; else if(p.cable==='yes') plug++; else none++;
+    if(p.poe==='on') poegreen++;
+    else if(p.poe==='denied') poedenied++;
+    else if(p.poe==='fault') poefault++;
+    else if(p.poe==='disabled') poeadm++;
+  } 
+  $('stat-up').textContent=up; $('stat-plug').textContent=plug; $('stat-none').textContent=none; $('stat-shut').textContent=shut;
+  $('stat-poegreen').textContent=poegreen; $('stat-poedenied').textContent=poedenied; $('stat-poefault').textContent=poefault; $('stat-poeadm').textContent=poeadm;
+}
+function setFields(i){ 
+  const p=db[i]; 
+  $('port-id').value=i; 
+  $('currentPort').textContent=`Gi1/0/${i}`; 
+  $('cable-present').value=p.cable; 
+  $('link-state').value=p.link; 
+  $('admin-state').value=p.admin; 
+  $('port-mode').value=p.mode; 
+  $('vlan').value=p.vlan; 
+  $('speed').value=p.speed; 
+  $('duplex').value=p.duplex; 
+  $('media-type').value=p.media; 
+  $('cable-type').value=p.ctype; 
+  $('nego-speed').value=p.nego; 
+  $('poe-state').value=p.poe;
+  $('desc').value=p.desc; 
+  $('device').value=p.device; 
+  $('neighbor').value=p.neighbor; 
+  $('mac').value=p.mac; 
+  $('location').value=p.location; 
+  $('lastseen').value=p.lastseen; 
+  $('tech').value=p.tech; 
+  $('notes').value=p.notes; 
+}
+function load(i){ 
+  if(i<1||i>N) return;
+  selected=i; setFields(i); renderPorts(); renderTable(); 
+}
+function save(){ 
+  const i=parseInt($('port-id').value||selected,10); 
+  db[i]={
+    cable:$('cable-present').value,link:$('link-state').value,admin:$('admin-state').value,mode:$('port-mode').value,
+    vlan:parseInt($('vlan').value||'1',10),speed:$('speed').value.trim(),duplex:$('duplex').value.trim(),
+    media:$('media-type').value,ctype:$('cable-type').value,nego:$('nego-speed').value,poe:$('poe-state').value,
+    desc:$('desc').value.trim(),device:$('device').value.trim(),neighbor:$('neighbor').value.trim(),mac:$('mac').value.trim(),
+    location:$('location').value.trim(),lastseen:$('lastseen').value.trim(),tech:$('tech').value.trim(),notes:$('notes').value.trim()
+  }; 
+  selected=i; renderPorts(); renderTable(); 
+}
+function clearFields(){ 
+  ['cable-present','link-state','admin-state','port-mode','media-type','cable-type','nego-speed'].forEach(id=>$(id).selectedIndex=0); 
+  $('vlan').value='1'; 
+  ['speed','duplex','poe-state','desc','device','neighbor','mac','location','lastseen','tech','notes'].forEach(id=>$(id).value=''); 
+}
+function nextPort(){ load(Math.min(N,selected+1)); }
+function saveLocal(){ localStorage.setItem(key, JSON.stringify({db,N,model,site:$('site-name').value})); }
+function loadLocal(){ 
+  const raw=localStorage.getItem(key); 
+  if(raw){ 
+    const j=JSON.parse(raw); 
+    db=j.db||db; N=j.N||N; model=j.model||model; 
+    $('site-name').value=j.site||''; 
+    $('siteLabel').textContent='SITE: '+($('site-name').value||'DEMO'); 
+    $('model-select').value=model;
+    modelChanged();
+    load(selected); 
+  } 
+}
+function resetDemo(){ 
+  db={}; N=48; model='9300-48P';
+  for(let i=1;i<=N;i++) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'unknown',ctype:'unknown',nego:'unknown',poe:'off',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''}; 
+  $('site-name').value=''; 
+  $('siteLabel').textContent='SITE: DEMO'; 
+  $('model-select').value=model;
+  modelChanged();
+  load(1); 
+}
+function modelChanged(){
+  model=$('model-select').value;
+  const m=models[model];
+  N=m.ports;
+  $('chassis-title').textContent=titleMap[model];
+  $('portCount').textContent=`${N} ports`;
+  // rebuild DB if growing
+  for(let i=1;i<=N;i++){ if(!db[i]) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'unknown',ctype:'unknown',nego:'unknown',poe:'off',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''}; }
+  if(selected>N) selected=N;
+  renderPorts(); renderTable();
+}
+function exportExcel(){ 
+  const rows=[['Port','Cable Present','Link State','Admin State','Port Mode','VLAN','PoE State','Media Type','Cable Type','Port Speed','Duplex','Negotiated Speed','Description','Device','Neighbor Port','MAC Address','Location','Last Seen','Tech','Notes']]; 
+  for(let i=1;i<=N;i++){ 
+    const p=db[i]; 
+    rows.push([`Gi1/0/${i}`,p.cable,p.link,p.admin,p.mode,p.vlan,p.poe,p.media,p.ctype,p.speed,p.duplex,p.nego,p.desc,p.device,p.neighbor,p.mac,p.location,p.lastseen,p.tech,p.notes]); 
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows); 
+  const wb=XLSX.utils.book_new(); 
+  XLSX.utils.book_append_sheet(wb,ws,'Port Inventory'); 
+  XLSX.writeFile(wb, 'site_switch_port_inventory.xlsx'); 
+}
+$('btn-apply').onclick=e=>{ e.preventDefault(); save(); };
+$('btn-clear').onclick=e=>{ e.preventDefault(); clearFields(); };
+$('btn-next').onclick=e=>{ e.preventDefault(); nextPort(); };
+$('btn-save').onclick=()=>{ saveLocal(); };
+$('btn-load').onclick=()=>{ loadLocal(); };
+$('btn-reset').onclick=()=>{ resetDemo(); };
+$('btn-export').onclick=()=>{ save(); exportExcel(); };
+$('model-select').addEventListener('change', modelChanged);
+$('mode-toggle').onclick=()=>{ 
+  poeMode=!poeMode; 
+  $('mode-toggle').classList.toggle('active',!poeMode); 
+  $('mode-toggle').textContent=poeMode?'PoE':'STAT'; 
+  renderPorts(); 
+};
+$('site-name').addEventListener('input', e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
+$('port-id').addEventListener('change', e=>load(Math.max(1,Math.min(N,parseInt(e.target.value||'1',10)))));
+$('search').addEventListener('input', renderTable);
+$('filter').addEventListener('change', renderTable);
+
+modelChanged();
+renderTable(); setFields(1);
+</script>
+</body>
+</html> 
