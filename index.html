@@ -661,7 +661,7 @@ function stateClass(p){
   if(p.cable==='yes') return 'state-plug';
   return 'state-none';
 }
-function portLabel(i){ return i>=101 ? `SFP ${i-100}` : String(i); }
+function portLabel(i){ return i>=101 ? `Sfp${i-100}` : String(i); }
 function ifName(i){ return i>=101 ? `Gi1/0/${48+(i-100)}` : `Gi1/0/${i}`; }
 function rowHtml(i,p){
   return `<tr data-i="${i}">
@@ -688,7 +688,7 @@ function uplinkDom(i,p){
   const d=document.createElement('div');
   d.className='port '+stateClass(p)+(selected===100+i?' active':'');
   d.id='uplink-'+i;
-  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>SFP ${i}</div><div class='small'>Uplink</div>`;
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>Sfp${i}</div><div class='small'>Uplink</div>`;
   d.onclick=()=>load(100+i);
   return d;
 }
