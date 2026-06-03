@@ -351,7 +351,7 @@ textarea{min-height:84px;resize:vertical}
       <div class="card section" style="background:rgba(10,16,29,.85)">
         <div class="toolbar" style="margin-bottom:10px">
           <h2>Port Editor</h2>
-          <span class="pill mono" id="currentPort">Gi1/0/1</span>
+          <span class="pill mono" id="currentPort">1</span>
         </div>
 
         <div class="two">
@@ -623,8 +623,8 @@ const models={
   '9300L-48P':{name:'C9300L-48P',ports:48},
   '9300-24P':{name:'C9300-24P',ports:24},
   '9300-48P':{name:'C9300-48P',ports:48},
-  '9300-24UX':{name:'C9300-24UX UPOE',ports:24},
-  '9300-48UXM':{name:'C9300-48UXM UPOE',ports:48},
+  '9300-24UX':{name:'C9300-24UX',ports:24},
+  '9300-48UXM':{name:'C9300-48UXM',ports:48}
 };
 
 let model='GEN-48';
@@ -661,13 +661,9 @@ function stateClass(p){
   if(p.cable==='yes') return 'state-plug';
   return 'state-none';
 }
-function portLabel(i){ return i>=101 ? `SFP ${i-100}` : `Gi1/0/${i}`; }
-function ifName(i){
-  if(i>=101) return `Gi1/0/${48+(i-100)}`;
-  return `Gi1/0/${i}`;
-}
+function portLabel(i){ return i>=101 ? `SFP ${i-100}` : String(i); }
+function ifName(i){ return i>=101 ? `Gi1/0/${48+(i-100)}` : `Gi1/0/${i}`; }
 function rowHtml(i,p){
-  const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':'b-poeadm';
   return `<tr data-i="${i}">
     <td class="mono">${portLabel(i)}</td>
     <td class="mono">${ifName(i)}</td>
@@ -771,7 +767,6 @@ function setFields(id){
   const p=db[id];
   $('currentPort').textContent=portLabel(id);
   $('port-id').value=id;
-  $('device-type').value=p.deviceType||'blank';
   $('patch-color').value=p.patchColor||'blank';
   $('cable-present').value=p.cable||'unknown';
   $('link-state').value=p.link||'unknown';
@@ -793,9 +788,9 @@ function setFields(id){
   $('fiber-color').value=p.fiberColor||'blank';
   $('tech').value=p.tech||'';
   $('notes').value=p.notes||'';
-  $('fiber-mode').disabled = $('media-type').value !== 'sfp';
-  $('fiber-std').disabled = $('media-type').value !== 'sfp';
-  $('fiber-color').disabled = $('media-type').value !== 'sfp';
+  $('fiber-mode').disabled=$('media-type').value!=='sfp';
+  $('fiber-std').disabled=$('media-type').value!=='sfp';
+  $('fiber-color').disabled=$('media-type').value!=='sfp';
 }
 function load(i){
   if(i<1 || (i>N && i<101) || i>104) return;
@@ -808,7 +803,6 @@ function save(){
   const id=selected;
   db[id]={
     ...db[id],
-    deviceType:$('device-type').value,
     patchColor:$('patch-color').value,
     cable:$('cable-present').value,
     link:$('link-state').value,
@@ -835,59 +829,30 @@ function save(){
   renderTable();
 }
 function clearFields(){
-  ['device-type','patch-color','cable-present','link-state','admin-state','poe-state','port-type','media-type','cable-type','fiber-mode','fiber-std','fiber-color'].forEach(id=>$(id).selectedIndex=0);
+  ['patch-color','cable-present','link-state','admin-state','poe-state','port-type','media-type','cable-type','fiber-mode','fiber-std','fiber-color'].forEach(id=>$(id).selectedIndex=0);
   $('vlan').value='1';
   ['neighbor','neighbor-port','mac','lastseen','speed','desc','device','tech','notes'].forEach(id=>$(id).value='');
 }
 function nextPort(){ load(Math.min(N,selected+1)); }
-
-function esc(s){ return `"${String(s ?? '').replace(/"/g,'""')}"`; }
 
 function makeRows(){
   const rows=[[
     'Port','Cisco IF','Type','Patched','Link','Label','VLAN','Port Type','Device Type','Media','Cable Type',
     'Speed','PoE','Admin','Neighbor','Neighbor Port','MAC','Last Seen','Tech','Fiber Mode','Fiber Standard','Fiber Color','Patch Color','Notes','Device'
   ]];
-
   for(let i=1;i<=N;i++){
     const p=db[i];
     rows.push([
-      portLabel(i),
-      ifName(i),
-      i>=101 ? 'SFP' : 'RJ45',
-      p.cable,
-      p.link,
-      p.desc,
-      p.vlan,
-      p.portType,
-      p.deviceType,
-      p.media,
-      p.ctype,
-      p.speed,
-      p.poe,
-      p.admin,
-      p.neighbor,
-      p.neighborPort,
-      p.mac,
-      p.lastseen,
-      p.tech,
-      p.fiberMode,
-      p.fiberStd,
-      p.fiberColor,
-      p.patchColor,
-      p.notes,
-      p.device
+      portLabel(i),ifName(i),i>=101?'SFP':'RJ45',p.cable,p.link,p.desc,p.vlan,p.portType,p.deviceType,p.media,p.ctype,
+      p.speed,p.poe,p.admin,p.neighbor,p.neighborPort,p.mac,p.lastseen,p.tech,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.notes,p.device
     ]);
   }
   return rows;
 }
-
 function dropBlankColumns(rows){
-  const header=rows[0];
-  const keep=header.map((_,c)=>rows.slice(1).some(r=>String(r[c] ?? '').trim()!==''));
+  const keep=rows[0].map((_,c)=>rows.slice(1).some(r=>String(r[c] ?? '').trim()!==''));
   return rows.map(r=>r.filter((_,c)=>keep[c]));
 }
-
 function exportXLSX(){
   save();
   const rows=dropBlankColumns(makeRows());
@@ -895,24 +860,12 @@ function exportXLSX(){
   const ws=XLSX.utils.aoa_to_sheet(rows);
   ws['!cols']=rows[0].map(()=>({wch:16}));
   XLSX.utils.book_append_sheet(wb,ws,'Ports');
-
-  const summary=[
-    ['Metric','Value'],
-    ['Model',models[model].name],
-    ['Site',$('site-name').value||''],
-    ['RJ45',N],
-    ['SFP',4],
-    ['Up',$('stat-up').textContent],
-    ['Cable',$('stat-plug').textContent],
-    ['Empty',$('stat-none').textContent],
-    ['Shutdown',$('stat-shut').textContent]
-  ];
+  const summary=[['Metric','Value'],['Model',models[model].name],['Site',$('site-name').value||''],['RJ45',N],['SFP',4],['Up',$('stat-up').textContent],['Cable',$('stat-plug').textContent],['Empty',$('stat-none').textContent],['Shutdown',$('stat-shut').textContent]];
   const ws2=XLSX.utils.aoa_to_sheet(summary);
   ws2['!cols']=[{wch:16},{wch:24}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
   XLSX.writeFile(wb,'switch_port_inventory.xlsx');
 }
-
 function saveLocal(){
   save();
   const data={model,db,site:$('site-name').value};
