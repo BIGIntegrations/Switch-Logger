@@ -753,7 +753,7 @@ function exportCSV(){
     const p=db['u'+i];
     rows.push([`U${i}`,'SFP',p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
   }
-  let csv='text/csv;charset=utf-8,';
+  let csv='data:text/csv;charset=utf-8,';
   rows.forEach(r=>csv+=r.map(esc).join(',')+'\n');
   const a=document.createElement('a');
   a.href=encodeURI(csv);
