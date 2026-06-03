@@ -8,6 +8,7 @@
 :root{
   --bg:#020617;
   --panel:#0b1220;
+  --panel-light:#111827;
   --line:#243047;
   --text:#e5e7eb;
   --muted:#94a3b8;
@@ -20,6 +21,10 @@
   --poeoff:#334155;
   --poealt:#f59e0b;
   --poefault:#ef4444;
+  --cyan:#38bdf8;
+  --chassis:#0f172a;
+  --chassis-edge:#1e293b;
+  --shadow:0 20px 60px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
 body{
@@ -29,21 +34,23 @@ body{
   color:var(--text);
 }
 header,footer{
-  background:rgba(15,23,42,.88);
+  background:rgba(15,23,42,.85);
   backdrop-filter:blur(8px);
   border-color:var(--line);
 }
 header{position:sticky;top:0;z-index:20;border-bottom:1px solid var(--line)}
 footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var(--muted);font-size:12px}
-.container{max-width:1600px;margin:0 auto;padding:16px}
+.container{max-width:1500px;margin:0 auto;padding:16px}
 .grid{display:grid;gap:16px}
-.topgrid{grid-template-columns:1.25fr .95fr}
-.maingrid{grid-template-columns:1.25fr .75fr}
+.topgrid{grid-template-columns:1.4fr .9fr;align-items:start}
+.maingrid{grid-template-columns:1.3fr .7fr;align-items:start}
 .card{
   background:rgba(17,24,39,.96);
   border:1px solid var(--line);
   border-radius:18px;
+  box-shadow:var(--shadow);
 }
+.card h2,.card h3{margin:0}
 .section{padding:16px}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .pill{
@@ -53,8 +60,9 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 }
 .btn{
   border:1px solid var(--line);background:#0b1220;color:var(--text);
-  padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;
+  padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;transition:.15s;
 }
+.btn:hover{transform:translateY(-1px);border-color:#3b82f6}
 .btn.primary{background:#134e4a;border-color:#0f766e}
 .btn.green{background:#14532d;border-color:#166534}
 .btn.blue{background:#0f172a;border-color:#1d4ed8}
@@ -63,26 +71,29 @@ input,select,textarea{
   width:100%;background:#0b1220;color:var(--text);
   border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;
 }
-input:focus,select:focus,textarea:focus{border-color:#38bdf8}
+input:focus,select:focus,textarea:focus{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.12)}
 label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.08em}
 .legend{display:flex;flex-wrap:wrap;gap:10px}
 .key{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .sw{width:12px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.12)}
-.small{font-size:12px;color:var(--muted)}
-.muted{color:var(--muted)}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.stack{display:grid;gap:12px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-.four{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
-textarea{min-height:84px;resize:vertical}
 
-/* chassis */
+/* SWITCH CHASSIS */
 .chassis-shell{
   padding:16px;
   background:linear-gradient(180deg,#090f1f,#050816);
   border:2px solid #1f2937;
   border-radius:20px;
+  overflow:auto;
+  box-shadow:inset 0 0 40px rgba(0,0,0,.6), 0 10px 30px rgba(0,0,0,.45);
+  position:relative;
+}
+.chassis-shell::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0));
+  pointer-events:none;
 }
 .chassis-head{
   display:flex;justify-content:space-between;align-items:center;
@@ -90,40 +101,69 @@ textarea{min-height:84px;resize:vertical}
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 .chassis-title{font-weight:700;color:#cbd5e1}
+.chassis-model{color:#94a3b8}
+
+/* STATUS BAR */
 .status-bar{
   display:flex;align-items:center;gap:12px;
   padding:8px 10px;background:#070c15;border:1px solid #1f2937;
   border-radius:12px;margin-bottom:14px;
 }
 .status-LED-group{display:flex;align-items:center;gap:6px}
-.status-LED-label{font-size:11px;color:#94a3b8}
+.status-LED-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
 .mode-toggle{
   display:inline-flex;align-items:center;gap:6px;
   padding:6px 10px;border:1px solid var(--line);border-radius:999px;
   background:#0b1220;color:var(--text);font-size:11px;font-weight:600;
-  cursor:pointer;
+  cursor:pointer;user-select:none;
 }
 .mode-toggle.active{border-color:#22c55e;background:#0f291a;color:#86efac}
-.led{width:10px;height:10px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
-.port-wrap{background:#0a0f1a;border:1px solid #1f2937;border-radius:14px;padding:12px}
-.port-row{display:grid;gap:6px;margin-bottom:10px}
-.port-row-24{grid-template-columns:repeat(24,minmax(24px,1fr))}
-.port-row-48{grid-template-columns:repeat(48,minmax(20px,1fr))}
-.uplink-row{display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #1f2937}
+.led{
+  width:10px;height:10px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 0 6px rgba(0,0,0,.4);
+}
+
+/* PORTS */
+.port-wrap{
+  background:#0a0f1a;border:1px solid #1f2937;
+  border-radius:14px;padding:12px;
+}
+.port-row{display:grid;gap:6px;margin-bottom:6px}
+.port-row-24{grid-template-columns:repeat(24,minmax(26px,1fr))}
+.port-row-48{grid-template-columns:repeat(48,minmax(22px,1fr))}
+.uplink-row{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(72px,1fr));
+  gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #1f2937;
+}
 .port,.uplink{
-  position:relative;background:#111827;border:1px solid #334155;border-top-width:3px;
-  border-radius:10px;min-height:48px;padding:6px 4px 5px;cursor:pointer;
-  transition:.15s;user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center
+  position:relative;
+  background:#111827;
+  border:1px solid #334155;
+  border-top-width:3px;
+  border-radius:10px;
+  min-height:48px;
+  padding:6px 4px 5px;
+  cursor:pointer;
+  transition:.15s;
+  user-select:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .port:hover,.uplink:hover{transform:translateY(-1px)}
 .port.active,.uplink.active{box-shadow:0 0 0 2px rgba(56,189,248,.65);transform:scale(1.03)}
 .port .num,.uplink .num{
-  font-size:10px;font-weight:700;text-align:center;color:#cbd5e1;margin-top:2px;
+  font-size:10px;font-weight:700;text-align:center;
+  color:#cbd5e1;margin-top:2px;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
-.port .led-area,.uplink .led-area{display:flex;align-items:center;justify-content:center;height:18px;width:100%}
+.port .led-area,.uplink .led-area{
+  display:flex;align-items:center;justify-content:center;
+  height:18px;width:100%;
+}
 .port-led{width:8px;height:8px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
 .uplink-led{width:10px;height:10px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
+
 .state-none{border-top-color:var(--down)}
 .state-none .port-led{background:#475569}
 .state-plug{border-top-color:var(--warn)}
@@ -134,6 +174,7 @@ textarea{min-height:84px;resize:vertical}
 .state-shutdown .port-led{background:var(--shut)}
 .state-err{border-top-color:var(--err)}
 .state-err .port-led{background:var(--err)}
+
 .uplink-none{border-top-color:var(--down)}
 .uplink-none .uplink-led{background:#475569}
 .uplink-plug{border-top-color:var(--warn)}
@@ -142,15 +183,17 @@ textarea{min-height:84px;resize:vertical}
 .uplink-link .uplink-led{background:var(--accent)}
 .uplink-shutdown{border-top-color:var(--shut)}
 .uplink-shutdown .uplink-led{background:var(--shut)}
+
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:520px}
 .table{width:100%;border-collapse:collapse;font-size:14px}
 .table thead th{
   position:sticky;top:0;background:#050816;color:#94a3b8;text-align:left;
-  padding:12px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.08em
+  padding:12px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.08em;
 }
 .table tbody td{padding:11px 12px;border-bottom:1px solid rgba(36,48,71,.65);vertical-align:middle}
 .table tbody tr:hover{background:rgba(30,41,59,.35);cursor:pointer}
 .table tbody tr.active{background:rgba(8,47,73,.45)}
+
 .badge{
   display:inline-flex;align-items:center;padding:4px 8px;
   border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent
@@ -164,6 +207,16 @@ textarea{min-height:84px;resize:vertical}
 .b-poeadm{background:rgba(100,116,139,.12);color:#cbd5e1;border-color:rgba(100,116,139,.28)}
 .b-poedenied{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
 .b-poefault{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.28)}
+
+.small{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.stack{display:grid;gap:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.four{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+textarea{min-height:84px;resize:vertical}
+
 @media(max-width:1200px){
   .topgrid,.maingrid,.two,.three,.four{grid-template-columns:1fr}
   .port-row-48{grid-template-columns:repeat(24,minmax(20px,1fr))}
@@ -441,18 +494,18 @@ textarea{min-height:84px;resize:vertical}
 
 <script>
 const models={
-  'GEN-24':{label:'Generic Cisco 24-Port',ports:24,model:'generic',uplinks:4},
-  'GEN-48':{label:'Generic Cisco 48-Port',ports:48,model:'generic',uplinks:4},
-  '9200L-24P':{label:'Catalyst 9200L 24-Port',ports:24,model:'c9200l',uplinks:4},
-  '9200L-48P':{label:'Catalyst 9200L 48-Port',ports:48,model:'c9200l',uplinks:4},
-  '9200-24P':{label:'Catalyst 9200 24-Port',ports:24,model:'c9200',uplinks:4},
-  '9200-48P':{label:'Catalyst 9200 48-Port',ports:48,model:'c9200',uplinks:4},
-  '9300L-24P':{label:'Catalyst 9300L 24-Port',ports:24,model:'c9300l',uplinks:4},
-  '9300L-48P':{label:'Catalyst 9300L 48-Port',ports:48,model:'c9300l',uplinks:4},
-  '9300-24P':{label:'Catalyst 9300 24-Port',ports:24,model:'c9300',uplinks:4},
-  '9300-48P':{label:'Catalyst 9300 48-Port',ports:48,model:'c9300',uplinks:4},
-  '9300-24UX':{label:'Catalyst 9300 24-Port UPOE',ports:24,model:'c9300ux',uplinks:4},
-  '9300-48UXM':{label:'Catalyst 9300 48-Port UPOE',ports:48,model:'c9300uxm',uplinks:4},
+  'GEN-24':{label:'Generic Cisco 24-Port',ports:24,uplinks:4},
+  'GEN-48':{label:'Generic Cisco 48-Port',ports:48,uplinks:4},
+  '9200L-24P':{label:'Catalyst 9200L 24-Port',ports:24,uplinks:4},
+  '9200L-48P':{label:'Catalyst 9200L 48-Port',ports:48,uplinks:4},
+  '9200-24P':{label:'Catalyst 9200 24-Port',ports:24,uplinks:4},
+  '9200-48P':{label:'Catalyst 9200 48-Port',ports:48,uplinks:4},
+  '9300L-24P':{label:'Catalyst 9300L 24-Port',ports:24,uplinks:4},
+  '9300L-48P':{label:'Catalyst 9300L 48-Port',ports:48,uplinks:4},
+  '9300-24P':{label:'Catalyst 9300 24-Port',ports:24,uplinks:4},
+  '9300-48P':{label:'Catalyst 9300 48-Port',ports:48,uplinks:4},
+  '9300-24UX':{label:'Catalyst 9300 24-Port UPOE',ports:24,uplinks:4},
+  '9300-48UXM':{label:'Catalyst 9300 48-Port UPOE',ports:48,uplinks:4},
 };
 const key='site-switch-logger-v3';
 let model='GEN-48';
@@ -463,26 +516,13 @@ let poeMode=false;
 const $=id=>document.getElementById(id);
 const top=$('port-row-top'), upl=$('uplink-row'), tbody=$('tbody');
 
-function makeRJ(i){return {kind:'rj45',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'rj45',ctype:'cat6',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
-function makeSF(i){return {kind:'sfp',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'sfp',ctype:'smf',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
+function makeRJ(){return {kind:'rj45',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'rj45',ctype:'cat6',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
+function makeSF(){return {kind:'sfp',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'sfp',ctype:'smf',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
 
 function ensureDB(){
-  for(let i=1;i<=N;i++) if(!db['r'+i]) db['r'+i]=makeRJ(i);
-  for(let i=1;i<=U;i++) if(!db['u'+i]) db['u'+i]=makeSF(i);
+  for(let i=1;i<=N;i++) if(!db['r'+i]) db['r'+i]=makeRJ();
+  for(let i=1;i<=U;i++) if(!db['u'+i]) db['u'+i]=makeSF();
 }
-
-function titleFor(m){ return models[m].label; }
-
-function initModel(){
-  const m=models[model];
-  N=m.ports; U=m.uplinks;
-  $('chassis-title').textContent=titleFor(model);
-  $('portCount').textContent=`${N} RJ45 + ${U} SFP`;
-  ensureDB();
-  if(!db[selected]) selected='r1';
-  renderAll();
-}
-
 function stateClass(p){
   if(p.admin==='down') return 'state-shutdown';
   if(p.link==='up') return 'state-link';
@@ -503,6 +543,16 @@ function layer2(p){ return p.link==='up' ? 'Up' : p.link==='down' ? 'Down' : p.l
 function poeLabel(p){ return p.poe==='on'?'On':p.poe==='denied'?'Denied':p.poe==='fault'?'Fault':'Off'; }
 function colorLabel(v){ return v && v!=='blank' ? v : ''; }
 
+function initModel(){
+  const m=models[model];
+  N=m.ports; U=m.uplinks;
+  $('chassis-title').textContent=m.label;
+  $('portCount').textContent=`${N} RJ45 + ${U} SFP`;
+  ensureDB();
+  if(!db[selected]) selected='r1';
+  renderAll();
+}
+
 function renderPorts(){
   top.innerHTML='';
   const row=document.createElement('div');
@@ -518,7 +568,6 @@ function renderPorts(){
   }
   top.appendChild(row);
 }
-
 function renderUplinks(){
   upl.innerHTML='';
   for(let i=1;i<=U;i++){
@@ -532,7 +581,6 @@ function renderUplinks(){
     upl.appendChild(d);
   }
 }
-
 function renderTable(){
   const q=$('search').value.toLowerCase().trim();
   const f=$('filter').value;
@@ -568,7 +616,6 @@ function renderTable(){
   });
   updateStats();
 }
-
 function updateStats(){
   let up=0,plug=0,none=0,shut=0;
   for(let i=1;i<=N;i++){
@@ -583,9 +630,7 @@ function updateStats(){
   $('stat-none').textContent=none;
   $('stat-shut').textContent=shut;
 }
-
 function renderAll(){ renderPorts(); renderUplinks(); renderTable(); }
-
 function fillFields(id){
   const p=db[id];
   $('currentPort').textContent=id.startsWith('r') ? `Gi1/0/${id.slice(1)}` : `U${id.slice(1)}`;
@@ -609,20 +654,9 @@ function fillFields(id){
   $('fiber-std').disabled = p.media !== 'sfp';
   $('fiber-color').disabled = p.media !== 'sfp';
 }
-
-function load(id){
-  selected=id;
-  fillFields(id);
-  renderAll();
-}
-
-function currentKey(){
-  return selected;
-}
-
+function load(id){ selected=id; fillFields(id); renderAll(); }
 function save(){
-  const id=selected;
-  const p=db[id];
+  const p=db[selected];
   p.deviceType=$('device-type').value;
   p.patchColor=$('patch-color').value;
   p.cable=$('cable-present').value;
@@ -640,7 +674,6 @@ function save(){
   p.notes=$('notes').value.trim();
   renderAll();
 }
-
 function clearFields(){
   $('device-type').value='blank';
   $('patch-color').value='blank';
@@ -658,7 +691,6 @@ function clearFields(){
   $('device').value='';
   $('notes').value='';
 }
-
 function nextPort(){
   if(selected.startsWith('r')){
     const n=parseInt(selected.slice(1),10);
@@ -670,7 +702,6 @@ function nextPort(){
     else load('r1');
   }
 }
-
 function saveJSON(){
   save();
   const data={model,db,site:$('site-name').value};
@@ -682,7 +713,6 @@ function saveJSON(){
   a.click();
   document.body.removeChild(a);
 }
-
 function loadJSON(){
   const input=document.createElement('input');
   input.type='file';
@@ -708,7 +738,6 @@ function loadJSON(){
   };
   input.click();
 }
-
 function esc(s){ return `"${String(s ?? '').replace(/"/g,'""')}"`; }
 function exportCSV(){
   save();
@@ -724,7 +753,7 @@ function exportCSV(){
     const p=db['u'+i];
     rows.push([`U${i}`,'SFP',p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
   }
-  let csv='data:text/csv;charset=utf-8,';
+  let csv='text/csv;charset=utf-8,';
   rows.forEach(r=>csv+=r.map(esc).join(',')+'\n');
   const a=document.createElement('a');
   a.href=encodeURI(csv);
@@ -733,7 +762,6 @@ function exportCSV(){
   a.click();
   document.body.removeChild(a);
 }
-
 function resetDemo(){
   db={};
   model='GEN-48';
@@ -754,8 +782,7 @@ $('model-select').addEventListener('change',()=>{ model=$('model-select').value;
 $('mode-toggle').onclick=()=>{ poeMode=!poeMode; $('mode-toggle').classList.toggle('active',!poeMode); $('mode-toggle').textContent=poeMode?'PoE':'STAT'; renderAll(); };
 $('site-name').addEventListener('input',e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
 $('media-type').addEventListener('change',()=>{
-  const v=$('media-type').value;
-  const sfp = v==='sfp';
+  const sfp=$('media-type').value==='sfp';
   $('fiber-mode').disabled=!sfp;
   $('fiber-std').disabled=!sfp;
   $('fiber-color').disabled=!sfp;
