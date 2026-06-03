@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Site Switch Port Logger</title>
+<title>Site Switch Port Logger - Cisco Faceplate</title>
 <style>
 :root{
   --bg:#020617;
@@ -77,7 +77,6 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
 .key{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .sw{width:12px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.12)}
 
-/* SWITCH CHASSIS */
 .chassis-shell{
   padding:16px;
   background:linear-gradient(180deg,#090f1f,#050816);
@@ -103,7 +102,6 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
 .chassis-title{font-weight:700;color:#cbd5e1}
 .chassis-model{color:#94a3b8}
 
-/* STATUS BAR */
 .status-bar{
   display:flex;align-items:center;gap:12px;
   padding:8px 10px;background:#070c15;border:1px solid #1f2937;
@@ -118,26 +116,21 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
   cursor:pointer;user-select:none;
 }
 .mode-toggle.active{border-color:#22c55e;background:#0f291a;color:#86efac}
+
 .led{
   width:10px;height:10px;border-radius:999px;
   border:1px solid rgba(255,255,255,.16);
   box-shadow:0 0 6px rgba(0,0,0,.4);
 }
 
-/* PORTS */
-.port-wrap{
+.port-chassis{
   background:#0a0f1a;border:1px solid #1f2937;
   border-radius:14px;padding:12px;
 }
 .port-row{display:grid;gap:6px;margin-bottom:6px}
 .port-row-24{grid-template-columns:repeat(24,minmax(26px,1fr))}
 .port-row-48{grid-template-columns:repeat(48,minmax(22px,1fr))}
-.uplink-row{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(72px,1fr));
-  gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #1f2937;
-}
-.port,.uplink{
+.port{
   position:relative;
   background:#111827;
   border:1px solid #334155;
@@ -150,53 +143,42 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
   user-select:none;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.port:hover,.uplink:hover{transform:translateY(-1px)}
-.port.active,.uplink.active{box-shadow:0 0 0 2px rgba(56,189,248,.65);transform:scale(1.03)}
-.port .num,.uplink .num{
+.port:hover{transform:translateY(-1px);border-color:#64748b}
+.port.active{box-shadow:0 0 0 2px rgba(56,189,248,.65);transform:scale(1.03)}
+
+.port .num{
   font-size:10px;font-weight:700;text-align:center;
-  color:#cbd5e1;margin-top:2px;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:#cbd5e1;margin-top:2px;
 }
-.port .led-area,.uplink .led-area{
+.port .led-area{
   display:flex;align-items:center;justify-content:center;
   height:18px;width:100%;
 }
-.port-led{width:8px;height:8px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
-.uplink-led{width:10px;height:10px;border-radius:999px;border:1px solid rgba(255,255,255,.16)}
-
-.state-none{border-top-color:var(--down)}
-.state-none .port-led{background:#475569}
-.state-plug{border-top-color:var(--warn)}
-.state-plug .port-led{background:var(--warn)}
-.state-link{border-top-color:var(--accent)}
-.state-link .port-led{background:var(--accent)}
-.state-shutdown{border-top-color:var(--shut)}
-.state-shutdown .port-led{background:var(--shut)}
-.state-err{border-top-color:var(--err)}
-.state-err .port-led{background:var(--err)}
-
-.uplink-none{border-top-color:var(--down)}
-.uplink-none .uplink-led{background:#475569}
-.uplink-plug{border-top-color:var(--warn)}
-.uplink-plug .uplink-led{background:var(--warn)}
-.uplink-link{border-top-color:var(--accent)}
-.uplink-link .uplink-led{background:var(--accent)}
-.uplink-shutdown{border-top-color:var(--shut)}
-.uplink-shutdown .uplink-led{background:var(--shut)}
-
-.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:520px}
-.table{width:100%;border-collapse:collapse;font-size:14px}
-.table thead th{
-  position:sticky;top:0;background:#050816;color:#94a3b8;text-align:left;
-  padding:12px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+.port .plug-icon{
+  width:14px;height:8px;border-radius:2px;
+  border:1.5px solid #94a3b8;position:relative;opacity:.35;
 }
-.table tbody td{padding:11px 12px;border-bottom:1px solid rgba(36,48,71,.65);vertical-align:middle}
-.table tbody tr:hover{background:rgba(30,41,59,.35);cursor:pointer}
-.table tbody tr.active{background:rgba(8,47,73,.45)}
+.port .plug-icon::after{
+  content:'';
+  position:absolute;right:-3px;top:1.5px;width:2.5px;height:5px;
+  border-radius:1px;background:#94a3b8;
+}
+
+.state-none{border-top-color:var(--down);background:#0f172a}
+.state-none .port-led{background:#475569}
+.state-plug{border-top-color:var(--warn);background:linear-gradient(180deg,#111827,#0f172a)}
+.state-plug .port-led{background:var(--warn)}
+.state-link{border-top-color:var(--accent);background:linear-gradient(180deg,#11231a,#0f172a)}
+.state-link .port-led{background:var(--accent)}
+.state-shutdown{border-top-color:var(--shut);background:linear-gradient(180deg,#2a1010,#0f172a)}
+.state-shutdown .port-led{background:var(--shut)}
+.state-err{border-top-color:var(--err);background:linear-gradient(180deg,#24112d,#0f172a)}
+.state-err .port-led{background:var(--err)}
 
 .badge{
   display:inline-flex;align-items:center;padding:4px 8px;
-  border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent
+  border-radius:999px;font-size:11px;font-weight:700;border:1px solid transparent;
 }
 .b-link{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.28)}
 .b-plug{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
@@ -208,18 +190,29 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
 .b-poedenied{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.28)}
 .b-poefault{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.28)}
 
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:520px}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table thead th{
+  position:sticky;top:0;background:#050816;color:#94a3b8;
+  text-align:left;padding:12px;border-bottom:1px solid var(--line);
+  font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+}
+.table tbody td{padding:11px 12px;border-bottom:1px solid rgba(36,48,71,.65);vertical-align:middle}
+.table tbody tr:hover{background:rgba(30,41,59,.35);cursor:pointer}
+.table tbody tr.active{background:rgba(8,47,73,.45)}
+
 .small{font-size:12px;color:var(--muted)}
 .muted{color:var(--muted)}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-.stack{display:grid;gap:12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .four{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.stack{display:grid;gap:12px}
 textarea{min-height:84px;resize:vertical}
 
 @media(max-width:1200px){
-  .topgrid,.maingrid,.two,.three,.four{grid-template-columns:1fr}
-  .port-row-48{grid-template-columns:repeat(24,minmax(20px,1fr))}
+  .topgrid,.maingrid,.four,.three,.two{grid-template-columns:1fr}
+  .port-row-48{grid-template-columns:repeat(24,minmax(22px,1fr))}
 }
 </style>
 </head>
@@ -228,11 +221,11 @@ textarea{min-height:84px;resize:vertical}
   <div class="container toolbar">
     <div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <div style="width:10px;height:10px;border-radius:999px;background:#22c55e"></div>
+        <div style="width:10px;height:10px;border-radius:999px;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.14)"></div>
         <h1 style="margin:0;font-size:18px">Site Switch Port Logger</h1>
         <span class="pill">24/48-port Cisco faces + SFP uplinks</span>
       </div>
-      <div class="small" style="margin-top:6px">JSON save/load for iPhone, CSV export for reporting.</div>
+      <div class="small" style="margin-top:6px">Generic Cisco first, Cisco-style options after, with file save/load.</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn primary" id="btn-export">Export CSV</button>
@@ -249,26 +242,28 @@ textarea{min-height:84px;resize:vertical}
       <div class="toolbar" style="padding:0 2px 6px 2px">
         <div>
           <h2>Switch Face</h2>
-          <div class="small">Choose a model, then click ports or uplinks to edit.</div>
+          <div class="small">Select model, then click ports to edit.</div>
         </div>
-        <select id="model-select" style="min-width:210px">
-          <optgroup label="Generic Cisco">
-            <option value="GEN-24">Generic Cisco 24-port</option>
-            <option value="GEN-48" selected>Generic Cisco 48-port</option>
-          </optgroup>
-          <optgroup label="Cisco-style">
-            <option value="9200L-24P">C9200L-24P</option>
-            <option value="9200L-48P">C9200L-48P</option>
-            <option value="9200-24P">C9200-24P</option>
-            <option value="9200-48P">C9200-48P</option>
-            <option value="9300L-24P">C9300L-24P</option>
-            <option value="9300L-48P">C9300L-48P</option>
-            <option value="9300-24P">C9300-24P</option>
-            <option value="9300-48P">C9300-48P</option>
-            <option value="9300-24UX">C9300-24UX</option>
-            <option value="9300-48UXM">C9300-48UXM</option>
-          </optgroup>
-        </select>
+        <div class="legend">
+          <select id="model-select" style="min-width:180px">
+            <optgroup label="Generic Cisco">
+              <option value="GEN-24">Generic Cisco 24-port</option>
+              <option value="GEN-48" selected>Generic Cisco 48-port</option>
+            </optgroup>
+            <optgroup label="Cisco-style">
+              <option value="9200L-24P">C9200L-24P</option>
+              <option value="9200L-48P">C9200L-48P</option>
+              <option value="9200-24P">C9200-24P</option>
+              <option value="9200-48P">C9200-48P</option>
+              <option value="9300L-24P">C9300L-24P</option>
+              <option value="9300L-48P">C9300L-48P</option>
+              <option value="9300-24P">C9300-24P</option>
+              <option value="9300-48P">C9300-48P</option>
+              <option value="9300-24UX">C9300-24UX</option>
+              <option value="9300-48UXM">C9300-48UXM</option>
+            </optgroup>
+          </select>
+        </div>
       </div>
 
       <div class="chassis-shell">
@@ -281,31 +276,40 @@ textarea{min-height:84px;resize:vertical}
         </div>
 
         <div class="status-bar">
-          <div class="status-LED-group"><div class="led" style="background:#22c55e"></div><div class="status-LED-label">SYS</div></div>
-          <div class="status-LED-group"><div class="led" style="background:#22c55e"></div><div class="status-LED-label">USB</div></div>
-          <div class="status-LED-group"><div class="led" style="background:#22c55e"></div><div class="status-LED-label">MGMT</div></div>
+          <div class="status-LED-group">
+            <div class="led" id="sys-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">SYS</div>
+          </div>
+          <div class="status-LED-group">
+            <div class="led" id="usb-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">USB</div>
+          </div>
+          <div class="status-LED-group">
+            <div class="led" id="mgmt-led" style="background:#22c55e"></div>
+            <div class="status-LED-label">MGMT</div>
+          </div>
           <div style="flex:1"></div>
           <div class="mode-toggle active" id="mode-toggle">STAT</div>
           <div class="status-LED-label">MODE</div>
           <div class="small muted">PoE</div>
         </div>
 
-        <div class="port-wrap">
-          <div id="port-row-top"></div>
-          <div class="uplink-row" id="uplink-row"></div>
+        <div class="port-chassis">
+          <div class="port-row" id="port-row-top"></div>
+          <div class="port-row" id="port-row-bottom"></div>
         </div>
       </div>
 
       <div class="legend">
         <div class="key"><span class="sw" style="background:#475569"></span>No cable</div>
         <div class="key"><span class="sw" style="background:#f59e0b"></span>Cable only</div>
-        <div class="key"><span class="sw" style="background:#22c55e"></span>Link up / PoE on</div>
+        <div class="key"><span class="sw" style="background:#22c55e"></span>Link up</div>
         <div class="key"><span class="sw" style="background:#ef4444"></span>Shutdown</div>
       </div>
     </div>
 
     <div class="stack">
-      <div class="card section">
+      <div class="card section" style="background:rgba(10,16,29,.85)">
         <div class="toolbar" style="margin-bottom:10px">
           <h2>Port Editor</h2>
           <span class="pill mono" id="currentPort">Gi1/0/1</span>
@@ -437,42 +441,35 @@ textarea{min-height:84px;resize:vertical}
       <div class="toolbar">
         <div>
           <h2>Port Inventory</h2>
-          <div class="small">RJ45 and SFP uplinks are both logged. Color is optional and for field use.</div>
+          <div class="small">Green = link up / PoE on, amber = cable only, gray = empty, red = shutdown / fault.</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <input id="search" placeholder="Search port, label, device..." style="min-width:250px">
-          <select id="filter">
-            <option value="all">All</option>
-            <option value="up">Link up</option>
-            <option value="plug">Cable only</option>
-            <option value="none">Empty</option>
-            <option value="shutdown">Shutdown</option>
-            <option value="sfp">SFP</option>
-          </select>
+          <input id="search" placeholder="Search port, label, device, MAC..." style="min-width:260px">
+          <select id="filter"><option value="all">All</option><option value="up">Link up</option><option value="plug">Cable only</option><option value="none">No cable</option><option value="shutdown">Shutdown</option><option value="sfp">SFP</option></select>
         </div>
       </div>
       <div class="tablewrap">
         <table class="table">
           <thead>
             <tr>
-              <th>Port</th>
-              <th>Type</th>
-              <th>Cable</th>
-              <th>Link</th>
-              <th>Admin</th>
-              <th>PoE</th>
-              <th>VLAN</th>
-              <th>Device</th>
-              <th>Color</th>
+              <th>Port</th><th>Cable</th><th>Link</th><th>Admin</th><th>PoE</th><th>VLAN</th><th>Media</th><th>Cable Type</th><th>Speed</th><th>Label</th><th>Device</th><th>Updated</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
     </div>
-
     <div class="stack">
-      <div class="card section">
+      <div class="card section" style="background:rgba(10,16,29,.85)">
+        <h2 style="margin-bottom:10px">Audit Mode Fields</h2>
+        <div class="small">Use this when you have switch access and want the richer report.</div>
+        <div style="margin-top:12px" class="stack">
+          <div class="pill">Suggested export columns include LLDP/CDP, native VLAN, trunking, PoE, speed/duplex, and MAC address.</div>
+          <div class="pill">PoE mode toggle shows power state instead of link state.</div>
+          <div class="pill">You can still add more fields later without changing the layout.</div>
+        </div>
+      </div>
+      <div class="card section" style="background:rgba(10,16,29,.85)">
         <h3>Quick Stats</h3>
         <div class="four" style="margin-top:12px">
           <div class="pill"><strong id="stat-up">0</strong>&nbsp;Up</div>
@@ -480,161 +477,175 @@ textarea{min-height:84px;resize:vertical}
           <div class="pill"><strong id="stat-none">0</strong>&nbsp;Empty</div>
           <div class="pill"><strong id="stat-shut">0</strong>&nbsp;Shutdown</div>
         </div>
-      </div>
-      <div class="card section">
-        <h3>SFP Notes</h3>
-        <div class="small" style="line-height:1.6">
-          Use RJ45 SFP when the uplink is copper. Use fiber SFP when the uplink is optical. For fiber, store both mode and standard, plus the visible patch cord color.
+        <div class="four" style="margin-top:8px">
+          <div class="pill"><strong id="stat-poegreen">0</strong>&nbsp;PoE</div>
+          <div class="pill"><strong id="stat-poedenied">0</strong>&nbsp;Denied</div>
+          <div class="pill"><strong id="stat-poefault">0</strong>&nbsp;Fault</div>
+          <div class="pill"><strong id="stat-poeadm">0</strong>&nbsp;Disabled</div>
         </div>
       </div>
     </div>
   </div>
 </div>
-<footer>Generic Cisco fronts first, Cisco-style options after, with all RJ45 and SFP ports logged.</footer>
+<footer>Two-layer logging: physical occupancy + electrical link + PoE, with file export for site records.</footer>
 
 <script>
+const key='site-switch-logger-v2';
 const models={
-  'GEN-24':{label:'Generic Cisco 24-Port',ports:24,uplinks:4},
-  'GEN-48':{label:'Generic Cisco 48-Port',ports:48,uplinks:4},
-  '9200L-24P':{label:'Catalyst 9200L 24-Port',ports:24,uplinks:4},
-  '9200L-48P':{label:'Catalyst 9200L 48-Port',ports:48,uplinks:4},
-  '9200-24P':{label:'Catalyst 9200 24-Port',ports:24,uplinks:4},
-  '9200-48P':{label:'Catalyst 9200 48-Port',ports:48,uplinks:4},
-  '9300L-24P':{label:'Catalyst 9300L 24-Port',ports:24,uplinks:4},
-  '9300L-48P':{label:'Catalyst 9300L 48-Port',ports:48,uplinks:4},
-  '9300-24P':{label:'Catalyst 9300 24-Port',ports:24,uplinks:4},
-  '9300-48P':{label:'Catalyst 9300 48-Port',ports:48,uplinks:4},
-  '9300-24UX':{label:'Catalyst 9300 24-Port UPOE',ports:24,uplinks:4},
-  '9300-48UXM':{label:'Catalyst 9300 48-Port UPOE',ports:48,uplinks:4},
+  'GEN-24':{name:'Generic Cisco 24-Port',ports:24,rows:1},
+  'GEN-48':{name:'Generic Cisco 48-Port',ports:48,rows:2},
+  '9200L-24P':{name:'C9200L-24P',ports:24,rows:1},
+  '9200L-48P':{name:'C9200L-48P',ports:48,rows:2},
+  '9200-24P':{name:'C9200-24P',ports:24,rows:1},
+  '9200-48P':{name:'C9200-48P',ports:48,rows:2},
+  '9300L-24P':{name:'C9300L-24P',ports:24,rows:1},
+  '9300L-48P':{name:'C9300L-48P',ports:48,rows:2},
+  '9300-24P':{name:'C9300-24P',ports:24,rows:1},
+  '9300-48P':{name:'C9300-48P',ports:48,rows:2},
+  '9300-24UX':{name:'C9300-24UX UPOE',ports:24,rows:1},
+  '9300-48UXM':{name:'C9300-48UXM UPOE',ports:48,rows:2},
 };
-const key='site-switch-logger-v3';
 let model='GEN-48';
-let N=48,U=4;
-let db={};
-let selected='r1';
+let N=48;
+let db={}; 
+for(let i=1;i<=N;i++) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'rj45',ctype:'cat6',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''};
+let selected=1;
 let poeMode=false;
 const $=id=>document.getElementById(id);
-const top=$('port-row-top'), upl=$('uplink-row'), tbody=$('tbody');
+const portRowTop=$('port-row-top'), portRowBottom=$('port-row-bottom'), tbody=$('tbody');
 
-function makeRJ(){return {kind:'rj45',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'rj45',ctype:'cat6',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
-function makeSF(){return {kind:'sfp',cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,media:'sfp',ctype:'smf',deviceType:'blank',patchColor:'blank',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',desc:'',device:'',notes:''};}
-
-function ensureDB(){
-  for(let i=1;i<=N;i++) if(!db['r'+i]) db['r'+i]=makeRJ();
-  for(let i=1;i<=U;i++) if(!db['u'+i]) db['u'+i]=makeSF();
-}
-function stateClass(p){
-  if(p.admin==='down') return 'state-shutdown';
-  if(p.link==='up') return 'state-link';
-  if(p.link==='err') return 'state-err';
-  if(p.cable==='yes') return 'state-plug';
-  return 'state-none';
-}
-function uplinkClass(p){
-  if(p.admin==='down') return 'uplink-shutdown';
-  if(p.link==='up') return 'uplink-link';
-  if(p.link==='err') return 'uplink-shutdown';
-  if(p.cable==='yes') return 'uplink-plug';
-  return 'uplink-none';
-}
-function badge(text, cls){ return `<span class="badge ${cls}">${text}</span>`; }
 function layer1(p){ return p.cable==='yes' ? 'Cable' : p.cable==='no' ? 'Empty' : 'Unknown'; }
 function layer2(p){ return p.link==='up' ? 'Up' : p.link==='down' ? 'Down' : p.link==='err' ? 'Err' : 'Unknown'; }
-function poeLabel(p){ return p.poe==='on'?'On':p.poe==='denied'?'Denied':p.poe==='fault'?'Fault':'Off'; }
-function colorLabel(v){ return v && v!=='blank' ? v : ''; }
-
-function initModel(){
-  const m=models[model];
-  N=m.ports; U=m.uplinks;
-  $('chassis-title').textContent=m.label;
-  $('portCount').textContent=`${N} RJ45 + ${U} SFP`;
-  ensureDB();
-  if(!db[selected]) selected='r1';
-  renderAll();
+function poeLabel(p){ return p.poe==='on'?'On':p.poe==='denied'?'Denied':p.poe==='fault'?'Fault':p.poe==='disabled'?'Disabled':'Off'; }
+function badge(text, cls){ return `<span class="badge ${cls}">${text}</span>`; }
+function stateClass(p){ 
+  if(p.admin==='down') return 'state-shutdown'; 
+  if(p.link==='up') return 'state-link'; 
+  if(p.link==='err') return 'state-err'; 
+  if(p.cable==='yes') return 'state-plug'; 
+  return 'state-none'; 
 }
-
-function renderPorts(){
-  top.innerHTML='';
-  const row=document.createElement('div');
-  row.className='port-row port-row-'+N;
-  for(let i=1;i<=N;i++){
-    const p=db['r'+i];
-    const d=document.createElement('div');
-    d.className='port '+stateClass(p)+(selected==='r'+i?' active':'');
-    d.innerHTML=`<div class="led-area"><div class="port-led"></div></div><div class="num">${i}</div>`;
-    d.title=`Gi1/0/${i}`;
-    d.onclick=()=>load('r'+i);
-    row.appendChild(d);
+function poeStateClass(p){
+  if(p.poe==='on') return 'poe-on';
+  if(p.poe==='denied') return 'poe-denied';
+  if(p.poe==='fault') return 'poe-fault';
+  if(p.poe==='disabled') return 'state-shutdown';
+  return 'poe-off';
+}
+function rowHtml(i,p){ 
+  const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':p.poe==='disabled'?'b-shut':'b-poeadm';
+  return `<tr data-i="${i}">
+    <td class="mono">Gi1/0/${i}</td>
+    <td>${badge(layer1(p), p.cable==='yes'?'b-plug':p.cable==='no'?'b-none':'b-none')}</td>
+    <td>${badge(layer2(p), p.link==='up'?'b-link':p.link==='err'?'b-err':p.link==='down'?'b-none':'b-none')}</td>
+    <td>${badge(p.admin==='down'?'Shutdown':'Up', p.admin==='down'?'b-shut':'b-link')}</td>
+    <td>${badge(poeLabel(p), poeBadge)}</td>
+    <td class="mono">${p.vlan||1}</td>
+    <td>${p.media.toUpperCase()}</td>
+    <td>${p.ctype.toUpperCase()}</td>
+    <td>${p.nego ? p.nego.toUpperCase() : ''}</td>
+    <td>${p.desc||'<span class="muted">—</span>'}</td>
+    <td>${p.device||'<span class="muted">—</span>'}</td>
+    <td class="mono">${p.lastseen||'<span class="muted">—</span>'}</td>
+  </tr>`; 
+}
+function portDom(i,p){ 
+  const d=document.createElement('div');
+  const cls=poeMode ? poeStateClass(p) : stateClass(p);
+  d.className='port '+cls+(selected===i?' active':'');
+  d.id='port-'+i;
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>${i}</div>`;
+  d.title=`Gi1/0/${i}`;
+  d.onclick=()=>load(i);
+  return d; 
+}
+function uplinkDom(i,p){
+  const d=document.createElement('div');
+  const cls=poeMode ? poeStateClass(p) : stateClass(p);
+  d.className='port '+cls+(selected===100+i?' active':'');
+  d.id='uplink-'+i;
+  const text = p.media==='rj45' ? 'RJ45 SFP' : 'SFP';
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>SFP ${i}</div><div class='small'>${text}</div>`;
+  d.title=`SFP ${i}`;
+  d.onclick=()=>load(100+i);
+  return d;
+}
+function ensurePorts(){ 
+  for(let i=1;i<=N;i++){ if(!db[i]) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'rj45',ctype:'cat6',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''}; }
+  for(let i=101;i<=104;i++){ if(!db[i]) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'sfp',ctype:'smf',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''}; }
+}
+function renderPorts(){ 
+  portRowTop.innerHTML=''; portRowBottom.innerHTML='';
+  const is24= model.includes('24');
+  N=is24?24:48;
+  ensurePorts();
+  if(is24){
+    portRowTop.className='port-row port-row-24';
+    portRowBottom.style.display='none';
+    for(let i=1;i<=N;i++) portRowTop.appendChild(portDom(i,db[i]));
+  } else {
+    portRowTop.className='port-row port-row-48';
+    portRowBottom.style.display='flex';
+    for(let i=1;i<=N;i++){
+      if(i<=24) portRowTop.appendChild(portDom(i,db[i]));
+      else portRowBottom.appendChild(portDom(i,db[i]));
+    }
   }
-  top.appendChild(row);
+  portRowBottom.innerHTML='';
+  const uplRow=document.createElement('div');
+  uplRow.className='uplink-row';
+  for(let i=1;i<=4;i++) uplRow.appendChild(uplinkDom(i,db[100+i]));
+  portRowBottom.appendChild(uplRow);
 }
-function renderUplinks(){
-  upl.innerHTML='';
-  for(let i=1;i<=U;i++){
-    const p=db['u'+i];
-    const d=document.createElement('div');
-    d.className='uplink '+uplinkClass(p)+(selected==='u'+i?' active':'');
-    const label = p.media==='rj45' ? 'RJ45 SFP' : 'SFP';
-    d.innerHTML=`<div class="led-area"><div class="uplink-led"></div></div><div class="num">U${i}</div><div class="small">${label}</div>`;
-    d.title=`U${i}`;
-    d.onclick=()=>load('u'+i);
-    upl.appendChild(d);
-  }
-}
-function renderTable(){
-  const q=$('search').value.toLowerCase().trim();
-  const f=$('filter').value;
-  tbody.innerHTML='';
+function renderTable(){ 
+  const q=$('search').value.toLowerCase().trim(), f=$('filter').value; 
+  tbody.innerHTML=''; 
   const rows=[];
-  for(let i=1;i<=N;i++) rows.push({id:'r'+i,port:`Gi1/0/${i}`,type:'RJ45',p:db['r'+i]});
-  for(let i=1;i<=U;i++) rows.push({id:'u'+i,port:`U${i}`,type:'SFP',p:db['u'+i]});
-  rows.forEach(r=>{
-    const p=r.p;
-    const txt=`${r.port} ${r.type} ${Object.values(p).join(' ')}`.toLowerCase();
+  for(let i=1;i<=N;i++) rows.push({id:i,port:`Gi1/0/${i}`,kind:'RJ45',p:db[i]});
+  for(let i=1;i<=4;i++) rows.push({id:100+i,port:`SFP ${i}`,kind:'SFP',p:db[100+i]});
+  for(const r of rows){ 
+    const p=r.p; 
+    const txt=`${r.port} ${Object.values(p).join(' ')}`.toLowerCase(); 
     const state=(p.admin==='down')?'shutdown':(p.link==='up')?'up':(p.cable==='yes')?'plug':'none';
-    if(q && !txt.includes(q)) return;
-    if(f==='up' && state!=='up') return;
-    if(f==='plug' && state!=='plug') return;
-    if(f==='none' && state!=='none') return;
-    if(f==='shutdown' && state!=='shutdown') return;
-    if(f==='sfp' && r.type!=='SFP') return;
-    const tr=document.createElement('tr');
-    tr.className=selected===r.id ? 'active' : '';
-    tr.innerHTML=`
-      <td class="mono">${r.port}</td>
-      <td>${r.type}</td>
-      <td>${badge(layer1(p), p.cable==='yes'?'b-plug':p.cable==='no'?'b-none':'b-none')}</td>
-      <td>${badge(layer2(p), p.link==='up'?'b-link':p.link==='err'?'b-err':'b-none')}</td>
-      <td>${badge(p.admin==='down'?'Shutdown':'Up', p.admin==='down'?'b-shut':'b-link')}</td>
-      <td>${badge(poeLabel(p), p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':'b-poeadm')}</td>
-      <td class="mono">${p.vlan || 1}</td>
-      <td>${p.device || '<span class="muted">—</span>'}</td>
-      <td>${r.type==='SFP' ? (p.media==='rj45'?'RJ45':colorLabel(p.fiberColor)||'<span class="muted">—</span>') : (colorLabel(p.patchColor)||'<span class="muted">—</span>')}</td>
-    `;
-    tr.onclick=()=>load(r.id);
+    if(q && !txt.includes(q)) continue;
+    let match=false;
+    if(f==='all') match=true;
+    else if(f==='up') match=state==='up';
+    else if(f==='plug') match=state==='plug';
+    else if(f==='none') match=state==='none';
+    else if(f==='shutdown') match=state==='shutdown';
+    else if(f==='sfp') match=r.kind==='SFP';
+    if(!match) continue;
+    const tr=document.createElement('tr'); 
+    tr.innerHTML=rowHtml(r.kind==='RJ45'?r.id:r.id-100,p); 
+    if((r.kind==='RJ45' && r.id===selected) || (r.kind==='SFP' && selected===r.id)) tr.classList.add('active'); 
+    tr.onclick=()=>load(r.id); 
     tbody.appendChild(tr);
-  });
-  updateStats();
+  } 
+  updateStats(); 
 }
-function updateStats(){
-  let up=0,plug=0,none=0,shut=0;
-  for(let i=1;i<=N;i++){
-    const p=db['r'+i];
-    if(p.admin==='down') shut++;
-    else if(p.link==='up') up++;
-    else if(p.cable==='yes') plug++;
-    else none++;
+function updateStats(){ 
+  let up=0,plug=0,none=0,shut=0,poegreen=0,poedenied=0,poefault=0,poeadm=0;
+  for(let i=1;i<=N;i++){ 
+    const p=db[i]; 
+    if(p.admin==='down') shut++; else if(p.link==='up') up++; else if(p.cable==='yes') plug++; else none++;
+    if(p.poe==='on') poegreen++;
+    else if(p.poe==='denied') poedenied++;
+    else if(p.poe==='fault') poefault++;
+    else if(p.poe==='disabled') poeadm++;
+  } 
+  $('stat-up').textContent=up; $('stat-plug').textContent=plug; $('stat-none').textContent=none; $('stat-shut').textContent=shut;
+  $('stat-poegreen').textContent=poegreen; $('stat-poedenied').textContent=poedenied; $('stat-poefault').textContent=poefault; $('stat-poeadm').textContent=poeadm;
+}
+function setFields(id){ 
+  const p=db[id]; 
+  if(id>=101){
+    $('currentPort').textContent=`SFP ${id-100}`;
+    $('port-id').value=id-96;
+  } else {
+    $('currentPort').textContent=`Gi1/0/${id}`;
+    $('port-id').value=id;
   }
-  $('stat-up').textContent=up;
-  $('stat-plug').textContent=plug;
-  $('stat-none').textContent=none;
-  $('stat-shut').textContent=shut;
-}
-function renderAll(){ renderPorts(); renderUplinks(); renderTable(); }
-function fillFields(id){
-  const p=db[id];
-  $('currentPort').textContent=id.startsWith('r') ? `Gi1/0/${id.slice(1)}` : `U${id.slice(1)}`;
-  $('port-id').value=id.startsWith('r') ? parseInt(id.slice(1),10) : (N + parseInt(id.slice(1),10));
   $('device-type').value=p.deviceType || 'blank';
   $('patch-color').value=p.patchColor || 'blank';
   $('cable-present').value=p.cable || 'unknown';
@@ -650,110 +661,52 @@ function fillFields(id){
   $('desc').value=p.desc || '';
   $('device').value=p.device || '';
   $('notes').value=p.notes || '';
-  $('fiber-mode').disabled = p.media !== 'sfp';
-  $('fiber-std').disabled = p.media !== 'sfp';
-  $('fiber-color').disabled = p.media !== 'sfp';
 }
-function load(id){ selected=id; fillFields(id); renderAll(); }
-function save(){
-  const p=db[selected];
-  p.deviceType=$('device-type').value;
-  p.patchColor=$('patch-color').value;
-  p.cable=$('cable-present').value;
-  p.link=$('link-state').value;
-  p.admin=$('admin-state').value;
-  p.poe=$('poe-state').value;
-  p.vlan=parseInt($('vlan').value||'1',10);
-  p.media=$('media-type').value;
-  p.ctype=$('cable-type').value;
-  p.fiberMode=$('fiber-mode').value;
-  p.fiberStd=$('fiber-std').value;
-  p.fiberColor=$('fiber-color').value;
-  p.desc=$('desc').value.trim();
-  p.device=$('device').value.trim();
-  p.notes=$('notes').value.trim();
-  renderAll();
+function load(i){ 
+  if(i<1 || (i> N && i<101) || i>104) return;
+  selected=i; setFields(i); renderPorts(); renderTable(); 
 }
-function clearFields(){
-  $('device-type').value='blank';
-  $('patch-color').value='blank';
-  $('cable-present').value='unknown';
-  $('link-state').value='unknown';
-  $('admin-state').value='up';
-  $('poe-state').value='off';
-  $('vlan').value='1';
-  $('media-type').value='rj45';
-  $('cable-type').value='cat6';
-  $('fiber-mode').value='blank';
-  $('fiber-std').value='blank';
-  $('fiber-color').value='blank';
-  $('desc').value='';
-  $('device').value='';
-  $('notes').value='';
+function save(){ 
+  const id=selected; 
+  db[id]={
+    ...db[id],
+    deviceType:$('device-type').value,
+    patchColor:$('patch-color').value,
+    cable:$('cable-present').value,
+    link:$('link-state').value,
+    admin:$('admin-state').value,
+    poe:$('poe-state').value,
+    vlan:parseInt($('vlan').value||'1',10),
+    media:$('media-type').value,
+    ctype:$('cable-type').value,
+    fiberMode:$('fiber-mode').value,
+    fiberStd:$('fiber-std').value,
+    fiberColor:$('fiber-color').value,
+    desc:$('desc').value.trim(),
+    device:$('device').value.trim(),
+    notes:$('notes').value.trim()
+  }; 
+  renderPorts(); renderTable(); 
 }
-function nextPort(){
-  if(selected.startsWith('r')){
-    const n=parseInt(selected.slice(1),10);
-    if(n<N) load('r'+(n+1));
-    else load('u1');
-  }else{
-    const n=parseInt(selected.slice(1),10);
-    if(n<U) load('u'+(n+1));
-    else load('r1');
-  }
+function clearFields(){ 
+  ['device-type','patch-color','cable-present','link-state','admin-state','poe-state','media-type','cable-type','fiber-mode','fiber-std','fiber-color'].forEach(id=>$(id).selectedIndex=0); 
+  $('vlan').value='1'; 
+  ['desc','device','notes'].forEach(id=>$(id).value=''); 
 }
-function saveJSON(){
-  save();
-  const data={model,db,site:$('site-name').value};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='switch_data.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-function loadJSON(){
-  const input=document.createElement('input');
-  input.type='file';
-  input.accept='application/json';
-  input.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const data=JSON.parse(ev.target.result);
-        model=data.model || model;
-        $('model-select').value=model;
-        $('site-name').value=data.site || '';
-        db=data.db || db;
-        initModel();
-        load('r1');
-      }catch(err){
-        alert('Could not load file: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
-}
+function nextPort(){ load(Math.min(N,selected+1)); }
 function esc(s){ return `"${String(s ?? '').replace(/"/g,'""')}"`; }
-function exportCSV(){
-  save();
-  const rows=[[
-    'Port','Type','Device Type','Cable Present','Link State','Admin State','PoE State','VLAN',
-    'Media','Cable Type','Fiber Mode','Fiber Standard','Fiber Color','Patch Cord Color','Description','Device','Notes'
-  ]];
-  for(let i=1;i<=N;i++){
-    const p=db['r'+i];
-    rows.push([`Gi1/0/${i}`,'RJ45',p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
+function exportCSV(){ 
+  save(); 
+  const rows=[['Port','Device Type','Cable Present','Link State','Admin State','PoE State','VLAN','Media','Cable Type','Fiber Mode','Fiber Standard','Fiber Color','Patch Cord Color','Description','Device','Notes']]; 
+  for(let i=1;i<=N;i++){ 
+    const p=db[i]; 
+    rows.push([`Gi1/0/${i}`,p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]); 
   }
-  for(let i=1;i<=U;i++){
-    const p=db['u'+i];
-    rows.push([`U${i}`,'SFP',p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
+  for(let i=1;i<=4;i++){
+    const p=db[100+i];
+    rows.push([`SFP ${i}`,p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
   }
-  let csv='data:text/csv;charset=utf-8,';
+  let csv='text/csv;charset=utf-8,';
   rows.forEach(r=>csv+=r.map(esc).join(',')+'\n');
   const a=document.createElement('a');
   a.href=encodeURI(csv);
@@ -762,25 +715,81 @@ function exportCSV(){
   a.click();
   document.body.removeChild(a);
 }
-function resetDemo(){
-  db={};
-  model='GEN-48';
-  $('model-select').value=model;
-  $('site-name').value='';
-  initModel();
-  load('r1');
+function saveLocal(){ 
+  save();
+  const data={model,db,site:$('site-name').value}; 
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); 
+  const a=document.createElement('a'); 
+  a.href=URL.createObjectURL(blob); 
+  a.download='switch_data.json'; 
+  document.body.appendChild(a); 
+  a.click(); 
+  document.body.removeChild(a); 
 }
-
-$('btn-apply').onclick=e=>{e.preventDefault(); save(); };
-$('btn-clear').onclick=e=>{e.preventDefault(); clearFields(); };
-$('btn-next').onclick=e=>{e.preventDefault(); nextPort(); };
-$('btn-save').onclick=()=>saveJSON();
-$('btn-load').onclick=()=>loadJSON();
-$('btn-export').onclick=()=>exportCSV();
+function loadLocal(){ 
+  const input=document.createElement('input'); 
+  input.type='file'; 
+  input.accept='application/json'; 
+  input.onchange=e=>{ 
+    const file=e.target.files[0]; 
+    if(!file) return; 
+    const reader=new FileReader(); 
+    reader.onload=ev=>{ 
+      try{ 
+        const data=JSON.parse(ev.target.result); 
+        model=data.model || model; 
+        $('model-select').value=model; 
+        $('site-name').value=data.site || ''; 
+        db=data.db || db; 
+        initModel(); 
+        load(1); 
+      }catch(err){ 
+        alert('Could not load file: ' + err.message); 
+      } 
+    }; 
+    reader.readAsText(file); 
+  }; 
+  input.click(); 
+}
+function resetDemo(){ 
+  db={}; 
+  model='GEN-48'; 
+  for(let i=1;i<=48;i++) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'rj45',ctype:'cat6',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''};
+  for(let i=101;i<=104;i++) db[i]={cable:'unknown',link:'unknown',admin:'up',mode:'access',vlan:1,speed:'',duplex:'',media:'sfp',ctype:'smf',fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:''};
+  $('site-name').value=''; 
+  $('siteLabel').textContent='SITE: DEMO'; 
+  $('model-select').value=model;
+  initModel();
+  load(1); 
+}
+function initModel(){
+  model=$('model-select').value;
+  const m=models[model];
+  N=m.ports;
+  $('chassis-title').textContent=m.name;
+  $('portCount').textContent=`${N} RJ45 + 4 SFP`;
+  ensurePorts();
+  if(selected>104 || (selected>N && selected<101)) selected=1;
+  renderPorts(); renderTable();
+}
+$('btn-apply').onclick=e=>{ e.preventDefault(); save(); };
+$('btn-clear').onclick=e=>{ e.preventDefault(); clearFields(); };
+$('btn-next').onclick=e=>{ e.preventDefault(); nextPort(); };
+$('btn-save').onclick=()=>saveLocal();
+$('btn-load').onclick=()=>loadLocal();
 $('btn-reset').onclick=()=>resetDemo();
-$('model-select').addEventListener('change',()=>{ model=$('model-select').value; initModel(); load('r1'); });
-$('mode-toggle').onclick=()=>{ poeMode=!poeMode; $('mode-toggle').classList.toggle('active',!poeMode); $('mode-toggle').textContent=poeMode?'PoE':'STAT'; renderAll(); };
-$('site-name').addEventListener('input',e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
+$('btn-export').onclick=()=>saveLocal();
+$('model-select').addEventListener('change', initModel);
+$('mode-toggle').onclick=()=>{ 
+  poeMode=!poeMode; 
+  $('mode-toggle').classList.toggle('active',!poeMode); 
+  $('mode-toggle').textContent=poeMode?'PoE':'STAT'; 
+  renderPorts(); 
+};
+$('site-name').addEventListener('input', e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
+$('port-id').addEventListener('change', e=>load(Math.max(1,Math.min(104,parseInt(e.target.value||'1',10)))));
+$('search').addEventListener('input', renderTable);
+$('filter').addEventListener('change', renderTable);
 $('media-type').addEventListener('change',()=>{
   const sfp=$('media-type').value==='sfp';
   $('fiber-mode').disabled=!sfp;
@@ -789,7 +798,7 @@ $('media-type').addEventListener('change',()=>{
 });
 
 initModel();
-load('r1');
+load(1);
 </script>
 </body>
 </html>
