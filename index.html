@@ -17,7 +17,6 @@
   --down:#64748b;
   --shut:#ef4444;
   --err:#a855f7;
-  --cyan:#38bdf8;
   --shadow:0 20px 60px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
@@ -119,9 +118,7 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
   display:grid;
   gap:8px;
 }
-.rj45-grid.ports-24{
-  grid-template-columns:repeat(24,minmax(26px,1fr));
-}
+.rj45-grid.ports-24,
 .rj45-grid.ports-48{
   grid-template-columns:repeat(24,minmax(26px,1fr));
 }
@@ -143,7 +140,10 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
   cursor:pointer;
   transition:.15s;
   user-select:none;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
 }
 .port:hover{transform:translateY(-1px);border-color:#64748b}
 .port.active{box-shadow:0 0 0 2px rgba(56,189,248,.65);transform:scale(1.03)}
@@ -226,12 +226,12 @@ textarea{min-height:84px;resize:vertical}
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <div style="width:10px;height:10px;border-radius:999px;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.14)"></div>
         <h1 style="margin:0;font-size:18px">Site Switch Port Logger</h1>
-        <span class="pill">24/48-port Cisco faces + SFP uplinks</span>
+        <span class="pill">Cisco faces + SFP uplinks</span>
       </div>
       <div class="small" style="margin-top:6px">Generic Cisco first, Cisco-style options after, with file save/load.</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn primary" id="btn-export">Export CSV</button>
+      <button class="btn primary" id="btn-export">Export XLSX</button>
       <button class="btn green" id="btn-save">Save File</button>
       <button class="btn blue" id="btn-load">Load File</button>
       <button class="btn warn" id="btn-reset">Reset Demo</button>
@@ -312,7 +312,7 @@ textarea{min-height:84px;resize:vertical}
           <span class="pill mono" id="currentPort">Gi1/0/1</span>
         </div>
         <div class="two">
-          <div><label>Port</label><input id="port-id" type="number" min="1" max="52"></div>
+          <div><label>Port</label><input id="port-id" type="number" min="1" max="104"></div>
           <div><label>Site / Closet</label><input id="site-name" placeholder="HQ MDF"></div>
         </div>
         <div class="two" style="margin-top:12px">
@@ -456,7 +456,7 @@ textarea{min-height:84px;resize:vertical}
         <table class="table">
           <thead>
             <tr>
-              <th>Port</th><th>Cable</th><th>Link</th><th>Admin</th><th>PoE</th><th>VLAN</th><th>Media</th><th>Cable Type</th><th>Speed</th><th>Label</th><th>Device</th><th>Updated</th>
+              <th>Port</th><th>Cisco IF</th><th>Cable</th><th>Link</th><th>Admin</th><th>PoE</th><th>VLAN</th><th>Media</th><th>Cable Type</th><th>Speed</th><th>Label</th><th>Device</th><th>Updated</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -491,10 +491,10 @@ textarea{min-height:84px;resize:vertical}
     </div>
   </div>
 </div>
-<footer>Two-layer logging: physical occupancy + electrical link + PoE, with file export for site records.</footer>
+<footer>Two-layer logging: physical occupancy + electrical link + PoE, with spreadsheet export for site records.</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-const key='site-switch-logger-v2';
 const models={
   'GEN-24':{name:'Generic Cisco 24-Port',ports:24},
   'GEN-48':{name:'Generic Cisco 48-Port',ports:48},
@@ -509,11 +509,11 @@ const models={
   '9300-24UX':{name:'C9300-24UX UPOE',ports:24},
   '9300-48UXM':{name:'C9300-48UXM UPOE',ports:48},
 };
+
 let model='GEN-48';
 let N=48;
 let db={};
 let selected=1;
-let poeMode=false;
 
 const $=id=>document.getElementById(id);
 const rj45Top=$('rj45-top');
@@ -523,10 +523,9 @@ const tbody=$('tbody');
 
 function blankPort(media='rj45'){
   return {
-    cable:'unknown',link:'unknown',admin:'up',poe:'off',
-    vlan:1,media,ctype:media==='sfp'?'smf':'cat6',
-    fiberMode:'blank',fiberStd:'blank',fiberColor:'blank',
-    patchColor:'blank',deviceType:'blank',desc:'',device:'',
+    cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,
+    media,ctype:media==='sfp'?'smf':'cat6',fiberMode:'blank',fiberStd:'blank',
+    fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',
     neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:'',nego:''
   };
 }
@@ -550,18 +549,11 @@ function stateClass(p){
   return 'state-none';
 }
 
-function poeStateClass(p){
-  if(p.poe==='on') return 'poe-on';
-  if(p.poe==='denied') return 'poe-denied';
-  if(p.poe==='fault') return 'poe-fault';
-  if(p.admin==='down') return 'state-shutdown';
-  return 'poe-off';
-}
-
 function rowHtml(portNumber,p,isSfp=false){
-  const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':p.poe==='disabled'?'b-shut':'b-poeadm';
+  const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':'b-poeadm';
   return `<tr data-i="${isSfp ? 100+portNumber : portNumber}">
     <td class="mono">${isSfp ? `SFP ${portNumber}` : `Gi1/0/${portNumber}`}</td>
+    <td class="mono">${isSfp ? `Gi1/0/${48+portNumber}` : `Gi1/0/${portNumber}`}</td>
     <td>${badge(layer1(p), p.cable==='yes'?'b-plug':'b-none')}</td>
     <td>${badge(layer2(p), p.link==='up'?'b-link':p.link==='err'?'b-err':'b-none')}</td>
     <td>${badge(p.admin==='down'?'Shutdown':'Up', p.admin==='down'?'b-shut':'b-link')}</td>
@@ -581,7 +573,6 @@ function portDom(i,p){
   d.className='port '+stateClass(p)+(selected===i?' active':'');
   d.id='port-'+i;
   d.innerHTML=`<div class="led-area"><div class="port-led"></div></div><div class="num">${i}</div>`;
-  d.title=`Gi1/0/${i}`;
   d.onclick=()=>load(i);
   return d;
 }
@@ -591,18 +582,17 @@ function uplinkDom(i,p){
   d.className='port '+stateClass(p)+(selected===100+i?' active':'');
   d.id='uplink-'+i;
   d.innerHTML=`<div class="led-area"><div class="port-led"></div></div><div class="num">SFP ${i}</div><div class="small">Uplink</div>`;
-  d.title=`SFP ${i}`;
   d.onclick=()=>load(100+i);
   return d;
 }
 
 function renderPorts(){
-  const is24 = N===24;
+  const is24=N===24;
   rj45Top.innerHTML='';
   rj45Bottom.innerHTML='';
   uplinks.innerHTML='';
+  rj45Top.className='rj45-grid '+(is24?'ports-24':'ports-48');
 
-  rj45Top.className='rj45-grid ' + (is24 ? 'ports-24' : 'ports-48');
   if(is24){
     for(let i=1;i<=24;i++) rj45Top.appendChild(portDom(i,db[i]));
     rj45Bottom.style.display='none';
@@ -675,7 +665,7 @@ function setFields(id){
   const p=db[id];
   if(id>=101){
     $('currentPort').textContent=`SFP ${id-100}`;
-    $('port-id').value=id-96;
+    $('port-id').value=id;
   }else{
     $('currentPort').textContent=`Gi1/0/${id}`;
     $('port-id').value=id;
@@ -698,7 +688,7 @@ function setFields(id){
 }
 
 function load(i){
-  if(i<1 || (i> N && i<101) || i>104) return;
+  if(i<1 || (i>N && i<101) || i>104) return;
   selected=i;
   setFields(i);
   renderPorts();
@@ -736,41 +726,120 @@ function clearFields(){
 }
 
 function nextPort(){
-  load(Math.min(N, selected+1));
+  load(Math.min(N,selected+1));
 }
 
-function esc(s){ return `"${String(s ?? '').replace(/"/g,'""')}"`; }
+function makeRows(){
+  const rows=[[
+    'Port','Cisco IF','Type','Device Type','Cable Present','Link State','Admin State',
+    'PoE State','VLAN','Media','Cable Type','Fiber Mode','Fiber Standard','Fiber Color',
+    'Patch Cord Color','Description','Device','Notes','MAC','Neighbor','Location','Last Seen','Speed','Duplex','Tech'
+  ]];
 
-function downloadText(filename, content, type='text/plain'){
-  const blob=new Blob([content],{type});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-}
-
-function exportCSV(){
-  save();
-  const rows=[['Port','Device Type','Cable Present','Link State','Admin State','PoE State','VLAN','Media','Cable Type','Fiber Mode','Fiber Standard','Fiber Color','Patch Cord Color','Description','Device','Notes']];
   for(let i=1;i<=N;i++){
     const p=db[i];
-    rows.push([`Gi1/0/${i}`,p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
+    rows.push([
+      `Gi1/0/${i}`,
+      `Gi1/0/${i}`,
+      'RJ45',
+      p.deviceType,
+      p.cable,
+      p.link,
+      p.admin,
+      p.poe,
+      p.vlan,
+      p.media,
+      p.ctype,
+      p.fiberMode,
+      p.fiberStd,
+      p.fiberColor,
+      p.patchColor,
+      p.desc,
+      p.device,
+      p.notes,
+      p.mac,
+      p.neighbor,
+      p.location,
+      p.lastseen,
+      p.nego,
+      '',
+      p.tech
+    ]);
   }
+
   for(let i=1;i<=4;i++){
     const p=db[100+i];
-    rows.push([`SFP ${i}`,p.deviceType,p.cable,p.link,p.admin,p.poe,p.vlan,p.media,p.ctype,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.desc,p.device,p.notes]);
+    rows.push([
+      `SFP ${i}`,
+      `Gi1/0/${48+i}`,
+      'SFP',
+      p.deviceType,
+      p.cable,
+      p.link,
+      p.admin,
+      p.poe,
+      p.vlan,
+      p.media,
+      p.ctype,
+      p.fiberMode,
+      p.fiberStd,
+      p.fiberColor,
+      p.patchColor,
+      p.desc,
+      p.device,
+      p.notes,
+      p.mac,
+      p.neighbor,
+      p.location,
+      p.lastseen,
+      p.nego,
+      '',
+      p.tech
+    ]);
   }
-  const csv = rows.map(r=>r.map(esc).join(',')).join('\n');
-  downloadText('switch_port_inventory.csv', csv, 'text/csv;charset=utf-8');
+
+  return rows;
+}
+
+function exportXLSX(){
+  save();
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(makeRows());
+  ws['!cols']=[
+    {wch:12},{wch:12},{wch:8},{wch:14},{wch:12},{wch:10},{wch:12},{wch:10},{wch:8},{wch:8},
+    {wch:12},{wch:10},{wch:12},{wch:10},{wch:14},{wch:18},{wch:16},{wch:22},{wch:18},{wch:18},
+    {wch:18},{wch:18},{wch:10},{wch:10},{wch:12}
+  ];
+  XLSX.utils.book_append_sheet(wb,ws,'Ports');
+
+  const summary=[
+    ['Metric','Value'],
+    ['Model',models[model].name],
+    ['Site',$('site-name').value||''],
+    ['RJ45',N],
+    ['SFP',4],
+    ['Up',$('stat-up').textContent],
+    ['Cable',$('stat-plug').textContent],
+    ['Empty',$('stat-none').textContent],
+    ['Shutdown',$('stat-shut').textContent]
+  ];
+  const ws2=XLSX.utils.aoa_to_sheet(summary);
+  ws2['!cols']=[{wch:16},{wch:24}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Summary');
+  XLSX.writeFile(wb,'switch_port_inventory.xlsx');
 }
 
 function saveLocal(){
   save();
   const data={model,db,site:$('site-name').value};
-  downloadText('switch_data.json', JSON.stringify(data,null,2), 'application/json');
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='switch_data.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 
 function loadLocal(){
@@ -784,16 +853,16 @@ function loadLocal(){
     reader.onload=ev=>{
       try{
         const data=JSON.parse(ev.target.result);
-        model=data.model || model;
+        model=data.model||model;
         $('model-select').value=model;
-        $('site-name').value=data.site || '';
+        $('site-name').value=data.site||'';
         N=models[model].ports;
         initDb(N);
         if(data.db) db=data.db;
         initModel();
         load(1);
       }catch(err){
-        alert('Could not load file: ' + err.message);
+        alert('Could not load file: '+err.message);
       }
     };
     reader.readAsText(file);
@@ -816,12 +885,12 @@ function initModel(){
   $('chassis-title').textContent=models[model].name;
   $('portCount').textContent=`${N} RJ45 + 4 SFP`;
   if(!db || Object.keys(db).length===0) initDb(N);
-  if(Object.keys(db).length < N+4) {
+  if(Object.keys(db).length < N+4){
     for(let i=1;i<=N;i++) if(!db[i]) db[i]=blankPort('rj45');
     for(let i=101;i<=104;i++) if(!db[i]) db[i]=blankPort('sfp');
   }
-  if(selected > N && selected < 101) selected = 1;
-  if(selected > 104) selected = 1;
+  if(selected>N && selected<101) selected=1;
+  if(selected>104) selected=1;
   renderPorts();
   renderTable();
   setFields(selected);
@@ -833,15 +902,8 @@ $('btn-next').onclick=e=>{ e.preventDefault(); nextPort(); };
 $('btn-save').onclick=saveLocal;
 $('btn-load').onclick=loadLocal;
 $('btn-reset').onclick=resetDemo;
-$('btn-export').onclick=exportCSV;
+$('btn-export').onclick=exportXLSX;
 $('model-select').addEventListener('change', initModel);
-
-$('mode-toggle').onclick=()=>{
-  poeMode=!poeMode;
-  $('mode-toggle').classList.toggle('active',!poeMode);
-  $('mode-toggle').textContent=poeMode?'PoE':'STAT';
-  renderPorts();
-};
 
 $('site-name').addEventListener('input', e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
 $('port-id').addEventListener('change', e=>load(Math.max(1,Math.min(104,parseInt(e.target.value||'1',10)))));
