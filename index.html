@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Site Switch Port Logger - Cisco Faceplate</title>
+<title>Site Switch Port Logger</title>
 <style>
 :root{
   --bg:#020617;
@@ -208,6 +208,48 @@ label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px;text-tr
 .stack{display:grid;gap:12px}
 textarea{min-height:84px;resize:vertical}
 
+.more-panel{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#0a0f1a;
+  overflow:hidden;
+}
+.more-panel > summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  font-weight:700;
+  color:#e5e7eb;
+  border-bottom:1px solid transparent;
+}
+.more-panel > summary::-webkit-details-marker{display:none}
+.more-panel[open] > summary{border-bottom-color:var(--line)}
+.more-hint{font-size:12px;color:var(--muted);font-weight:500}
+.more-grid{
+  padding:16px;
+  display:grid;
+  gap:14px;
+}
+.more-group{
+  border:1px solid #1f2937;
+  border-radius:14px;
+  background:rgba(17,24,39,.72);
+  padding:14px;
+}
+.more-title{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#94a3b8;
+  margin-bottom:12px;
+  font-weight:700;
+}
+
 @media(max-width:1200px){
   .topgrid,.maingrid,.four,.three,.two{grid-template-columns:1fr}
   .rj45-grid.ports-48{grid-template-columns:repeat(12,minmax(24px,1fr))}
@@ -311,119 +353,194 @@ textarea{min-height:84px;resize:vertical}
           <h2>Port Editor</h2>
           <span class="pill mono" id="currentPort">Gi1/0/1</span>
         </div>
+
         <div class="two">
           <div><label>Port</label><input id="port-id" type="number" min="1" max="104"></div>
           <div><label>Site / Closet</label><input id="site-name" placeholder="HQ MDF"></div>
         </div>
+
         <div class="two" style="margin-top:12px">
-          <div><label>Device Type</label>
-            <select id="device-type">
-              <option value="blank">Blank</option>
-              <option value="AP">AP</option>
-              <option value="PC">PC</option>
-              <option value="Printer">Printer</option>
-              <option value="Phone">Phone</option>
-              <option value="Camera">Camera</option>
-              <option value="TV">TV</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div><label>Patch Cord Color</label>
-            <select id="patch-color">
-              <option value="blank">Blank</option>
-              <option value="blue">Blue</option>
-              <option value="yellow">Yellow</option>
-              <option value="green">Green</option>
-              <option value="orange">Orange</option>
-              <option value="purple">Purple</option>
-              <option value="red">Red</option>
-              <option value="white">White</option>
-              <option value="black">Black</option>
-              <option value="gray">Gray</option>
-              <option value="aqua">Aqua</option>
-              <option value="magenta">Magenta</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="two" style="margin-top:12px">
-          <div><label>Cable Present</label>
+          <div><label>Patched In</label>
             <select id="cable-present"><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select>
           </div>
           <div><label>Link State</label>
             <select id="link-state"><option value="down">Down</option><option value="up">Up</option><option value="err">Err-disabled</option><option value="unknown">Unknown</option></select>
           </div>
         </div>
+
         <div class="two" style="margin-top:12px">
-          <div><label>Admin State</label>
-            <select id="admin-state"><option value="up">Up</option><option value="down">Shutdown</option></select>
-          </div>
-          <div><label>PoE State</label>
-            <select id="poe-state">
-              <option value="off">Off</option>
-              <option value="on">On</option>
-              <option value="denied">Denied</option>
-              <option value="fault">Fault</option>
-            </select>
-          </div>
+          <div><label>Description / Name</label><input id="desc" placeholder="AP, Phone, Camera..."></div>
+          <div><label>Device</label><input id="device" placeholder="AP-2F-01"></div>
         </div>
-        <div class="three" style="margin-top:12px">
-          <div><label>VLAN</label><input id="vlan" type="number" min="1" max="4094" value="1"></div>
-          <div><label>Media</label>
-            <select id="media-type">
-              <option value="rj45">RJ45</option>
-              <option value="sfp">SFP</option>
-            </select>
+
+        <details class="more-panel" id="more-panel">
+          <summary>
+            <span>More</span>
+            <span class="more-hint">Admin, PoE, Port Type, LLDP, media, notes</span>
+          </summary>
+
+          <div class="more-grid">
+            <div class="more-group">
+              <div class="more-title">Interface</div>
+              <div class="two">
+                <div>
+                  <label>Admin State</label>
+                  <select id="admin-state">
+                    <option value="up">Up</option>
+                    <option value="down">Shutdown</option>
+                  </select>
+                </div>
+                <div>
+                  <label>PoE State</label>
+                  <select id="poe-state">
+                    <option value="off">Off</option>
+                    <option value="on">On</option>
+                    <option value="denied">Denied</option>
+                    <option value="fault">Fault</option>
+                  </select>
+                </div>
+              </div>
+              <div class="two" style="margin-top:12px">
+                <div>
+                  <label>Port Type</label>
+                  <select id="port-type">
+                    <option value="access">Access</option>
+                    <option value="trunk">Trunk</option>
+                    <option value="voice">Voice</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label>VLAN</label>
+                  <input id="vlan" type="number" min="1" max="4094" value="1">
+                </div>
+              </div>
+            </div>
+
+            <div class="more-group">
+              <div class="more-title">Discovery</div>
+              <div class="two">
+                <div>
+                  <label>Neighbor</label>
+                  <input id="neighbor" placeholder="LLDP/CDP neighbor">
+                </div>
+                <div>
+                  <label>Neighbor Port</label>
+                  <input id="neighbor-port" placeholder="Gi1/0/24">
+                </div>
+              </div>
+              <div class="two" style="margin-top:12px">
+                <div>
+                  <label>MAC Address</label>
+                  <input id="mac" placeholder="aa:bb:cc:dd:ee:ff">
+                </div>
+                <div>
+                  <label>Last Seen</label>
+                  <input id="lastseen" placeholder="2026-06-03 00:12">
+                </div>
+              </div>
+            </div>
+
+            <div class="more-group">
+              <div class="more-title">Media</div>
+              <div class="three">
+                <div>
+                  <label>Media Type</label>
+                  <select id="media-type">
+                    <option value="rj45">RJ45</option>
+                    <option value="sfp">SFP</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Cable Type</label>
+                  <select id="cable-type">
+                    <option value="cat5e">Cat5e</option>
+                    <option value="cat6">Cat6</option>
+                    <option value="cat6a">Cat6A</option>
+                    <option value="smf">SMF</option>
+                    <option value="mmf">MMF</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Speed</label>
+                  <input id="speed" placeholder="1G / 10G / auto">
+                </div>
+              </div>
+              <div class="three" style="margin-top:12px">
+                <div>
+                  <label>Fiber Mode</label>
+                  <select id="fiber-mode">
+                    <option value="blank">Blank</option>
+                    <option value="single">Single-mode</option>
+                    <option value="multi">Multi-mode</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Fiber Standard</label>
+                  <select id="fiber-std">
+                    <option value="blank">Blank</option>
+                    <option value="OM1">OM1</option>
+                    <option value="OM2">OM2</option>
+                    <option value="OM3">OM3</option>
+                    <option value="OM4">OM4</option>
+                    <option value="OS1">OS1</option>
+                    <option value="OS2">OS2</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Fiber Color</label>
+                  <select id="fiber-color">
+                    <option value="blank">Blank</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="aqua">Aqua</option>
+                    <option value="orange">Orange</option>
+                    <option value="blue">Blue</option>
+                    <option value="purple">Purple</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                    <option value="black">Black</option>
+                    <option value="white">White</option>
+                    <option value="gray">Gray</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="more-group">
+              <div class="more-title">Notes</div>
+              <div class="two">
+                <div>
+                  <label>Patch Color</label>
+                  <select id="patch-color">
+                    <option value="blank">Blank</option>
+                    <option value="blue">Blue</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="green">Green</option>
+                    <option value="orange">Orange</option>
+                    <option value="purple">Purple</option>
+                    <option value="red">Red</option>
+                    <option value="white">White</option>
+                    <option value="black">Black</option>
+                    <option value="gray">Gray</option>
+                    <option value="aqua">Aqua</option>
+                    <option value="magenta">Magenta</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Tech</label>
+                  <input id="tech" placeholder="Initials">
+                </div>
+              </div>
+              <div style="margin-top:12px">
+                <label>Notes</label>
+                <textarea id="notes" placeholder="Anything useful about this port."></textarea>
+              </div>
+            </div>
           </div>
-          <div><label>Cable Type</label>
-            <select id="cable-type">
-              <option value="cat5e">Cat5e</option>
-              <option value="cat6">Cat6</option>
-              <option value="cat6a">Cat6A</option>
-              <option value="smf">SMF</option>
-              <option value="mmf">MMF</option>
-            </select>
-          </div>
-        </div>
-        <div class="three" style="margin-top:12px">
-          <div><label>Fiber Mode</label>
-            <select id="fiber-mode">
-              <option value="blank">Blank</option>
-              <option value="single">Single-mode</option>
-              <option value="multi">Multi-mode</option>
-            </select>
-          </div>
-          <div><label>Fiber Standard</label>
-            <select id="fiber-std">
-              <option value="blank">Blank</option>
-              <option value="OM1">OM1</option>
-              <option value="OM2">OM2</option>
-              <option value="OM3">OM3</option>
-              <option value="OM4">OM4</option>
-              <option value="OS1">OS1</option>
-              <option value="OS2">OS2</option>
-            </select>
-          </div>
-          <div><label>Fiber Color</label>
-            <select id="fiber-color">
-              <option value="blank">Blank</option>
-              <option value="yellow">Yellow</option>
-              <option value="aqua">Aqua</option>
-              <option value="orange">Orange</option>
-              <option value="blue">Blue</option>
-              <option value="purple">Purple</option>
-              <option value="green">Green</option>
-              <option value="red">Red</option>
-              <option value="black">Black</option>
-              <option value="white">White</option>
-              <option value="gray">Gray</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-top:12px"><label>Description / Label</label><input id="desc" placeholder="AP, Phone, Camera..."></div>
-        <div style="margin-top:12px"><label>Device</label><input id="device" placeholder="AP-2F-01"></div>
-        <div style="margin-top:12px"><label>Notes</label><textarea id="notes" placeholder="Anything useful about this port."></textarea></div>
+        </details>
+
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
           <button class="btn primary" id="btn-apply">Save Port</button>
           <button class="btn" id="btn-clear">Clear Fields</button>
@@ -456,7 +573,7 @@ textarea{min-height:84px;resize:vertical}
         <table class="table">
           <thead>
             <tr>
-              <th>Port</th><th>Cisco IF</th><th>Cable</th><th>Link</th><th>Admin</th><th>PoE</th><th>VLAN</th><th>Media</th><th>Cable Type</th><th>Speed</th><th>Label</th><th>Device</th><th>Updated</th>
+              <th>Port</th><th>Cisco IF</th><th>Patched</th><th>Link</th><th>Label</th><th>VLAN</th><th>Type</th><th>Device</th><th>Updated</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -523,24 +640,20 @@ const tbody=$('tbody');
 
 function blankPort(media='rj45'){
   return {
-    cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,
+    cable:'unknown',link:'unknown',admin:'up',poe:'off',vlan:1,portType:'access',
     media,ctype:media==='sfp'?'smf':'cat6',fiberMode:'blank',fiberStd:'blank',
     fiberColor:'blank',patchColor:'blank',deviceType:'blank',desc:'',device:'',
-    neighbor:'',mac:'',location:'',lastseen:'',tech:'',notes:'',nego:''
+    neighbor:'',neighborPort:'',mac:'',location:'',lastseen:'',tech:'',notes:'',speed:''
   };
 }
-
 function initDb(total){
   db={};
   for(let i=1;i<=total;i++) db[i]=blankPort('rj45');
   for(let i=101;i<=104;i++) db[i]=blankPort('sfp');
 }
-
 function layer1(p){ return p.cable==='yes' ? 'Cable' : p.cable==='no' ? 'Empty' : 'Unknown'; }
 function layer2(p){ return p.link==='up' ? 'Up' : p.link==='down' ? 'Down' : p.link==='err' ? 'Err' : 'Unknown'; }
-function poeLabel(p){ return p.poe==='on'?'On':p.poe==='denied'?'Denied':p.poe==='fault'?'Fault':'Off'; }
 function badge(text, cls){ return `<span class="badge ${cls}">${text}</span>`; }
-
 function stateClass(p){
   if(p.admin==='down') return 'state-shutdown';
   if(p.link==='up') return 'state-link';
@@ -548,44 +661,41 @@ function stateClass(p){
   if(p.cable==='yes') return 'state-plug';
   return 'state-none';
 }
-
-function rowHtml(portNumber,p,isSfp=false){
+function portLabel(i){ return i>=101 ? `SFP ${i-100}` : `Gi1/0/${i}`; }
+function ifName(i){
+  if(i>=101) return `Gi1/0/${48+(i-100)}`;
+  return `Gi1/0/${i}`;
+}
+function rowHtml(i,p){
   const poeBadge=p.poe==='on'?'b-poegreen':p.poe==='denied'?'b-poedenied':p.poe==='fault'?'b-poefault':'b-poeadm';
-  return `<tr data-i="${isSfp ? 100+portNumber : portNumber}">
-    <td class="mono">${isSfp ? `SFP ${portNumber}` : `Gi1/0/${portNumber}`}</td>
-    <td class="mono">${isSfp ? `Gi1/0/${48+portNumber}` : `Gi1/0/${portNumber}`}</td>
+  return `<tr data-i="${i}">
+    <td class="mono">${portLabel(i)}</td>
+    <td class="mono">${ifName(i)}</td>
     <td>${badge(layer1(p), p.cable==='yes'?'b-plug':'b-none')}</td>
     <td>${badge(layer2(p), p.link==='up'?'b-link':p.link==='err'?'b-err':'b-none')}</td>
-    <td>${badge(p.admin==='down'?'Shutdown':'Up', p.admin==='down'?'b-shut':'b-link')}</td>
-    <td>${badge(poeLabel(p), poeBadge)}</td>
-    <td class="mono">${p.vlan||1}</td>
-    <td>${(p.media||'').toUpperCase()}</td>
-    <td>${(p.ctype||'').toUpperCase()}</td>
-    <td>${p.nego ? p.nego.toUpperCase() : ''}</td>
     <td>${p.desc||'<span class="muted">—</span>'}</td>
+    <td class="mono">${p.vlan||1}</td>
+    <td>${p.portType||'access'}</td>
     <td>${p.device||'<span class="muted">—</span>'}</td>
     <td class="mono">${p.lastseen||'<span class="muted">—</span>'}</td>
   </tr>`;
 }
-
 function portDom(i,p){
   const d=document.createElement('div');
   d.className='port '+stateClass(p)+(selected===i?' active':'');
   d.id='port-'+i;
-  d.innerHTML=`<div class="led-area"><div class="port-led"></div></div><div class="num">${i}</div>`;
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>${portLabel(i)}</div>`;
   d.onclick=()=>load(i);
   return d;
 }
-
 function uplinkDom(i,p){
   const d=document.createElement('div');
   d.className='port '+stateClass(p)+(selected===100+i?' active':'');
   d.id='uplink-'+i;
-  d.innerHTML=`<div class="led-area"><div class="port-led"></div></div><div class="num">SFP ${i}</div><div class="small">Uplink</div>`;
+  d.innerHTML=`<div class='led-area'><div class="port-led"></div></div><div class='num'>SFP ${i}</div><div class='small'>Uplink</div>`;
   d.onclick=()=>load(100+i);
   return d;
 }
-
 function renderPorts(){
   const is24=N===24;
   rj45Top.innerHTML='';
@@ -602,10 +712,8 @@ function renderPorts(){
     for(let i=1;i<=24;i++) rj45Top.appendChild(portDom(i,db[i]));
     for(let i=25;i<=48;i++) rj45Bottom.appendChild(portDom(i,db[i]));
   }
-
   for(let i=1;i<=4;i++) uplinks.appendChild(uplinkDom(i,db[100+i]));
 }
-
 function updateStats(){
   let up=0,plug=0,none=0,shut=0,poegreen=0,poedenied=0,poefault=0,poeadm=0;
   for(let i=1;i<=N;i++){
@@ -628,7 +736,6 @@ function updateStats(){
   $('stat-poefault').textContent=poefault;
   $('stat-poeadm').textContent=poeadm;
 }
-
 function renderTable(){
   const q=$('search').value.toLowerCase().trim();
   const f=$('filter').value;
@@ -639,7 +746,7 @@ function renderTable(){
 
   for(const r of rows){
     const p=r.p;
-    const txt=`${r.kind==='SFP' ? `SFP ${r.id-100}` : `Gi1/0/${r.id}`} ${Object.values(p).join(' ')}`.toLowerCase();
+    const txt=`${portLabel(r.id)} ${Object.values(p).join(' ')}`.toLowerCase();
     const state=(p.admin==='down')?'shutdown':(p.link==='up')?'up':(p.cable==='yes')?'plug':'none';
     if(q && !txt.includes(q)) continue;
 
@@ -653,40 +760,43 @@ function renderTable(){
     if(!match) continue;
 
     const tr=document.createElement('tr');
-    tr.innerHTML=rowHtml(r.kind==='SFP' ? r.id-100 : r.id,p,r.kind==='SFP');
+    tr.innerHTML=rowHtml(r.id,p);
     if(selected===r.id) tr.classList.add('active');
     tr.onclick=()=>load(r.id);
     tbody.appendChild(tr);
   }
   updateStats();
 }
-
 function setFields(id){
   const p=db[id];
-  if(id>=101){
-    $('currentPort').textContent=`SFP ${id-100}`;
-    $('port-id').value=id;
-  }else{
-    $('currentPort').textContent=`Gi1/0/${id}`;
-    $('port-id').value=id;
-  }
+  $('currentPort').textContent=portLabel(id);
+  $('port-id').value=id;
   $('device-type').value=p.deviceType||'blank';
   $('patch-color').value=p.patchColor||'blank';
   $('cable-present').value=p.cable||'unknown';
   $('link-state').value=p.link||'unknown';
+  $('desc').value=p.desc||'';
+  $('device').value=p.device||'';
   $('admin-state').value=p.admin||'up';
   $('poe-state').value=p.poe||'off';
+  $('port-type').value=p.portType||'access';
   $('vlan').value=p.vlan||1;
+  $('neighbor').value=p.neighbor||'';
+  $('neighbor-port').value=p.neighborPort||'';
+  $('mac').value=p.mac||'';
+  $('lastseen').value=p.lastseen||'';
   $('media-type').value=p.media||'rj45';
   $('cable-type').value=p.ctype||'cat6';
+  $('speed').value=p.speed||'';
   $('fiber-mode').value=p.fiberMode||'blank';
   $('fiber-std').value=p.fiberStd||'blank';
   $('fiber-color').value=p.fiberColor||'blank';
-  $('desc').value=p.desc||'';
-  $('device').value=p.device||'';
+  $('tech').value=p.tech||'';
   $('notes').value=p.notes||'';
+  $('fiber-mode').disabled = $('media-type').value !== 'sfp';
+  $('fiber-std').disabled = $('media-type').value !== 'sfp';
+  $('fiber-color').disabled = $('media-type').value !== 'sfp';
 }
-
 function load(i){
   if(i<1 || (i>N && i<101) || i>104) return;
   selected=i;
@@ -694,7 +804,6 @@ function load(i){
   renderPorts();
   renderTable();
 }
-
 function save(){
   const id=selected;
   db[id]={
@@ -705,111 +814,86 @@ function save(){
     link:$('link-state').value,
     admin:$('admin-state').value,
     poe:$('poe-state').value,
+    portType:$('port-type').value,
     vlan:parseInt($('vlan').value||'1',10),
+    neighbor:$('neighbor').value.trim(),
+    neighborPort:$('neighbor-port').value.trim(),
+    mac:$('mac').value.trim(),
+    lastseen:$('lastseen').value.trim(),
     media:$('media-type').value,
     ctype:$('cable-type').value,
+    speed:$('speed').value.trim(),
     fiberMode:$('fiber-mode').value,
     fiberStd:$('fiber-std').value,
     fiberColor:$('fiber-color').value,
     desc:$('desc').value.trim(),
     device:$('device').value.trim(),
+    tech:$('tech').value.trim(),
     notes:$('notes').value.trim()
   };
   renderPorts();
   renderTable();
 }
-
 function clearFields(){
-  ['device-type','patch-color','cable-present','link-state','admin-state','poe-state','media-type','cable-type','fiber-mode','fiber-std','fiber-color'].forEach(id=>$(id).selectedIndex=0);
+  ['device-type','patch-color','cable-present','link-state','admin-state','poe-state','port-type','media-type','cable-type','fiber-mode','fiber-std','fiber-color'].forEach(id=>$(id).selectedIndex=0);
   $('vlan').value='1';
-  ['desc','device','notes'].forEach(id=>$(id).value='');
+  ['neighbor','neighbor-port','mac','lastseen','speed','desc','device','tech','notes'].forEach(id=>$(id).value='');
 }
+function nextPort(){ load(Math.min(N,selected+1)); }
 
-function nextPort(){
-  load(Math.min(N,selected+1));
-}
+function esc(s){ return `"${String(s ?? '').replace(/"/g,'""')}"`; }
 
 function makeRows(){
   const rows=[[
-    'Port','Cisco IF','Type','Device Type','Cable Present','Link State','Admin State',
-    'PoE State','VLAN','Media','Cable Type','Fiber Mode','Fiber Standard','Fiber Color',
-    'Patch Cord Color','Description','Device','Notes','MAC','Neighbor','Location','Last Seen','Speed','Duplex','Tech'
+    'Port','Cisco IF','Type','Patched','Link','Label','VLAN','Port Type','Device Type','Media','Cable Type',
+    'Speed','PoE','Admin','Neighbor','Neighbor Port','MAC','Last Seen','Tech','Fiber Mode','Fiber Standard','Fiber Color','Patch Color','Notes','Device'
   ]];
 
   for(let i=1;i<=N;i++){
     const p=db[i];
     rows.push([
-      `Gi1/0/${i}`,
-      `Gi1/0/${i}`,
-      'RJ45',
-      p.deviceType,
+      portLabel(i),
+      ifName(i),
+      i>=101 ? 'SFP' : 'RJ45',
       p.cable,
       p.link,
-      p.admin,
-      p.poe,
+      p.desc,
       p.vlan,
+      p.portType,
+      p.deviceType,
       p.media,
       p.ctype,
+      p.speed,
+      p.poe,
+      p.admin,
+      p.neighbor,
+      p.neighborPort,
+      p.mac,
+      p.lastseen,
+      p.tech,
       p.fiberMode,
       p.fiberStd,
       p.fiberColor,
       p.patchColor,
-      p.desc,
-      p.device,
       p.notes,
-      p.mac,
-      p.neighbor,
-      p.location,
-      p.lastseen,
-      p.nego,
-      '',
-      p.tech
+      p.device
     ]);
   }
-
-  for(let i=1;i<=4;i++){
-    const p=db[100+i];
-    rows.push([
-      `SFP ${i}`,
-      `Gi1/0/${48+i}`,
-      'SFP',
-      p.deviceType,
-      p.cable,
-      p.link,
-      p.admin,
-      p.poe,
-      p.vlan,
-      p.media,
-      p.ctype,
-      p.fiberMode,
-      p.fiberStd,
-      p.fiberColor,
-      p.patchColor,
-      p.desc,
-      p.device,
-      p.notes,
-      p.mac,
-      p.neighbor,
-      p.location,
-      p.lastseen,
-      p.nego,
-      '',
-      p.tech
-    ]);
-  }
-
   return rows;
+}
+
+function dropBlankColumns(rows){
+  const header=rows[0];
+  const keep=header.map((_,c)=>rows.slice(1).some(r=>String(r[c] ?? '').trim()!==''));
+  return rows.map(r=>r.filter((_,c)=>keep[c]));
 }
 
 function exportXLSX(){
   save();
+  const rows=dropBlankColumns(makeRows());
   const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(makeRows());
-  ws['!cols']=[
-    {wch:12},{wch:12},{wch:8},{wch:14},{wch:12},{wch:10},{wch:12},{wch:10},{wch:8},{wch:8},
-    {wch:12},{wch:10},{wch:12},{wch:10},{wch:14},{wch:18},{wch:16},{wch:22},{wch:18},{wch:18},
-    {wch:18},{wch:18},{wch:10},{wch:10},{wch:12}
-  ];
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=rows[0].map(()=>({wch:16}));
   XLSX.utils.book_append_sheet(wb,ws,'Ports');
 
   const summary=[
@@ -841,7 +925,6 @@ function saveLocal(){
   document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
-
 function loadLocal(){
   const input=document.createElement('input');
   input.type='file';
@@ -853,24 +936,22 @@ function loadLocal(){
     reader.onload=ev=>{
       try{
         const data=JSON.parse(ev.target.result);
-        model=data.model||model;
+        model=data.model || model;
         $('model-select').value=model;
-        $('site-name').value=data.site||'';
-        N=models[model].ports;
-        initDb(N);
-        if(data.db) db=data.db;
+        $('site-name').value=data.site || '';
+        db=data.db || db;
         initModel();
         load(1);
       }catch(err){
-        alert('Could not load file: '+err.message);
+        alert('Could not load file: ' + err.message);
       }
     };
     reader.readAsText(file);
   };
   input.click();
 }
-
 function resetDemo(){
+  db={};
   model='GEN-48';
   $('model-select').value=model;
   $('site-name').value='';
@@ -878,7 +959,6 @@ function resetDemo(){
   initModel();
   load(1);
 }
-
 function initModel(){
   model=$('model-select').value;
   N=models[model].ports;
@@ -904,7 +984,6 @@ $('btn-load').onclick=loadLocal;
 $('btn-reset').onclick=resetDemo;
 $('btn-export').onclick=exportXLSX;
 $('model-select').addEventListener('change', initModel);
-
 $('site-name').addEventListener('input', e=>$('siteLabel').textContent='SITE: '+(e.target.value||'DEMO'));
 $('port-id').addEventListener('change', e=>load(Math.max(1,Math.min(104,parseInt(e.target.value||'1',10)))));
 $('search').addEventListener('input', renderTable);
