@@ -71,6 +71,32 @@ body{margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;
 .b-active{background:rgba(34,197,94,.12);color:#86efac;border-color:rgba(34,197,94,.28)}
 .b-arch{background:rgba(100,116,139,.12);color:#cbd5e1;border-color:rgba(100,116,139,.28)}
 .proj-empty{padding:24px;text-align:center;color:var(--muted)}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px}
+.ref-table th,.ref-table td{padding:8px 10px;border-bottom:1px solid rgba(36,48,71,.65);text-align:left;vertical-align:middle}
+.ref-table th{color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.wire{display:inline-block;width:42px;height:14px;border-radius:3px;border:1px solid #475569;vertical-align:middle}
+.fdot{display:inline-block;width:16px;height:16px;border-radius:4px;border:1px solid #475569;vertical-align:middle;margin-right:8px}
+.pin-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pin-col h4{margin:0 0 8px;color:#cbd5e1;font-size:14px}
+.pin-row{display:flex;align-items:center;gap:10px;padding:4px 0;font-size:13px}
+.pin-n{width:16px;color:#94a3b8;font-family:ui-monospace,monospace;flex:none}
+.pin-name{color:#cbd5e1}
+.color-seq{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.cs{display:flex;align-items:center;gap:7px;font-size:12px;color:#cbd5e1}
+.cs .pin-n{width:14px}
+.ref-note{font-size:12px;color:var(--muted);margin-top:8px}
+@media(max-width:600px){.pin-grid{grid-template-columns:1fr}}
+.rj45-plug{position:relative;width:248px;max-width:100%;margin:16px auto 30px;background:#0f172a;border:2px solid #64748b;border-radius:10px 10px 5px 5px;padding:12px 10px;display:flex;gap:4px;justify-content:center}
+.rj45-plug:after{content:"";position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);width:60px;height:14px;background:#0f172a;border:2px solid #64748b;border-top:none;border-radius:0 0 5px 5px}
+.rj45-pin{width:22px;height:78px;border:1px solid #334155;border-radius:2px 2px 0 0;position:relative}
+.rj45-pin:before{content:"";position:absolute;top:0;left:0;right:0;height:13px;background:linear-gradient(#f3d27a,#d4af37);border-radius:2px 2px 0 0;border-bottom:1px solid #b8902b}
+.rj45-pin .pn{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:#94a3b8;font-family:ui-monospace,monospace}
+.plug-cap{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+.strand6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.strand6 .sc{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#cbd5e1;text-align:center}
+.strand6 .sb{width:100%;height:30px;border-radius:5px;border:1px solid #475569}
+.strand6 .sn{color:#94a3b8;font-family:ui-monospace,monospace}
+.strand6-row-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 2px}
 
 .card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
 .section{padding:16px}
@@ -214,6 +240,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
       <button class="tab active" data-tab="ports">Site Switch Port Logger</button>
       <button class="tab" data-tab="inventory">Inventory</button>
       <button class="tab" data-tab="projects">Projects</button>
+      <button class="tab" data-tab="reference">Reference</button>
     </div>
   </div>
 </header>
@@ -298,7 +325,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
           <div><label>Link State</label><select id="link-state"><option value="down">Down</option><option value="up">Up</option><option value="err">Err-disabled</option><option value="unknown">Unknown</option></select></div>
         </div>
         <div class="two" style="margin-top:12px">
-          <div><label>Description / Name</label><input id="desc" placeholder="AP, Phone, Camera..."></div>
+          <div><label>Description / Name</label><div class="combo"><input id="desc" autocomplete="off" placeholder="AP, Phone, Camera..."><div class="combo-list hidden" id="desc-list"></div></div></div>
           <div><label>Device</label><input id="device" placeholder="AP-2F-01"></div>
         </div>
         <details class="more-panel" id="more-panel">
@@ -343,7 +370,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
               <div class="more-title">Notes</div>
               <div class="two">
                 <div><label>Patch Color</label><select id="patch-color"><option value="blank">Blank</option><option value="blue">Blue</option><option value="yellow">Yellow</option><option value="green">Green</option><option value="orange">Orange</option><option value="purple">Purple</option><option value="red">Red</option><option value="white">White</option><option value="black">Black</option><option value="gray">Gray</option><option value="aqua">Aqua</option><option value="magenta">Magenta</option><option value="other">Other</option></select></div>
-                <div><label>Tech</label><input id="tech" placeholder="Initials"></div>
+                <div><label>Tech</label><div class="combo"><input id="tech" autocomplete="off" placeholder="Initials"><div class="combo-list hidden" id="tech-list"></div></div></div>
               </div>
               <div style="margin-top:12px"><label>Notes</label><textarea id="notes" placeholder="Anything useful about this port."></textarea></div>
             </div>
@@ -410,7 +437,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
       <div class="card section" style="background:rgba(10,16,29,.85)">
         <div class="two">
           <div><label>Item</label><div class="combo" id="inv-item-combo"><input id="inv-item" autocomplete="off" placeholder="AP, DMP, Antenna..."><div class="combo-list hidden" id="inv-item-list"></div></div></div>
-          <div><label>Model</label><input id="inv-model" placeholder="e.g. C9130AXI"></div>
+          <div><label>Model</label><div class="combo"><input id="inv-model" autocomplete="off" placeholder="e.g. C9130AXI"><div class="combo-list hidden" id="inv-model-list"></div></div></div>
         </div>
         <div class="two" style="margin-top:12px">
           <div><label style="display:flex;justify-content:space-between;align-items:center">Serial <span class="mini-toggle on" id="serial-caps">CAPS</span></label><div class="field-row"><input id="inv-serial" placeholder="Serial number"><button class="btn blue scan-btn" data-target="inv-serial">&#128247; Scan</button></div></div>
@@ -424,9 +451,9 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
             <div><label>Done</label><select id="inv-done"><option value="no">No</option><option value="yes">Yes</option></select></div>
           </div>
           <div class="three" style="margin-top:12px">
-            <div><label>Configured</label><select id="inv-config"><option value="no">No</option><option value="yes">Yes</option><option value="na">N/A</option></select></div>
-            <div><label>Tested</label><select id="inv-tested"><option value="no">No</option><option value="yes">Yes</option><option value="na">N/A</option></select></div>
-            <div><label>Labeled</label><select id="inv-labeled"><option value="no">No</option><option value="yes">Yes</option><option value="na">N/A</option></select></div>
+            <div><label>Configured</label><select id="inv-config"><option value="na">N/A</option><option value="no">No</option><option value="yes">Yes</option></select></div>
+            <div><label>Tested</label><select id="inv-tested"><option value="na">N/A</option><option value="no">No</option><option value="yes">Yes</option></select></div>
+            <div><label>Labeled</label><select id="inv-labeled"><option value="na">N/A</option><option value="no">No</option><option value="yes">Yes</option></select></div>
           </div>
         </div>
 
@@ -440,7 +467,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
               </div>
               <div class="two" style="margin-top:12px">
                 <div><label>Condition</label><select id="inv-cond"><option value="new">New</option><option value="good">Good</option><option value="used">Used</option><option value="damaged">Damaged</option></select></div>
-                <div><label>Tech</label><input id="inv-tech" placeholder="Initials"></div>
+                <div><label>Tech</label><div class="combo"><input id="inv-tech" autocomplete="off" placeholder="Initials"><div class="combo-list hidden" id="inv-tech-list"></div></div></div>
               </div>
               <div style="margin-top:12px"><label>Notes</label><textarea id="inv-notes" placeholder="Anything useful about this unit."></textarea></div>
             </div>
@@ -449,6 +476,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
           <button class="btn primary" id="inv-add">Add Unit</button>
+          <button class="btn blue" id="inv-batch">&#128247; Batch Scan</button>
           <button class="btn" id="inv-new">New / Clear</button>
         </div>
       </div>
@@ -522,6 +550,116 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 </div>
 </section>
 
+<!-- ============ REFERENCE TAB ============ -->
+<section id="tab-reference" class="tabpane hidden">
+<div class="container grid" style="margin-top:16px">
+
+  <div class="card section">
+    <h2>Cable Run Converter</h2>
+    <div class="small">Feet &harr; meters. Type in either box.</div>
+    <div class="two" style="margin-top:12px">
+      <div><label>Feet</label><input id="cv-ft" type="number" inputmode="decimal" placeholder="0"></div>
+      <div><label>Meters</label><input id="cv-m" type="number" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="ref-note">Max copper Ethernet run: <strong>100 m (328 ft)</strong> end to end (≈90 m permanent link + patch cords).</div>
+  </div>
+
+  <div class="card section">
+    <h2>Ethernet Categories</h2>
+    <table class="ref-table" style="margin-top:8px">
+      <thead><tr><th>Category</th><th>Max Speed</th><th>Bandwidth</th><th>Max Distance</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Cat5e</td><td>1 Gbps</td><td>100 MHz</td><td>100 m / 328 ft</td><td>Most common legacy copper</td></tr>
+        <tr><td>Cat6</td><td>1 Gbps (10G &le;55 m)</td><td>250 MHz</td><td>100 m; 10G to 55 m</td><td>Thicker, tighter twist</td></tr>
+        <tr><td>Cat6A</td><td>10 Gbps</td><td>500 MHz</td><td>100 m / 328 ft</td><td>10G full distance; often shielded</td></tr>
+        <tr><td>Cat7</td><td>10 Gbps</td><td>600 MHz</td><td>100 m / 328 ft</td><td>Shielded S/FTP; GG45/TERA ends</td></tr>
+        <tr><td>Cat8</td><td>25&ndash;40 Gbps</td><td>2000 MHz</td><td>30 m / 98 ft</td><td>Short data-center / switch-to-switch</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card section">
+    <h2>RJ45 Pinout (T568A / T568B)</h2>
+    <div class="small">Straight-through: both ends same standard. Crossover: one A, one B. Most installs use B.</div>
+    <div class="rj45-plug">
+      <div class="rj45-pin" style="background:repeating-linear-gradient(0deg,#f1f5f9 0 7px,#f59e0b 7px 14px)"><span class="pn">1</span></div>
+      <div class="rj45-pin" style="background:#f59e0b"><span class="pn">2</span></div>
+      <div class="rj45-pin" style="background:repeating-linear-gradient(0deg,#f1f5f9 0 7px,#22c55e 7px 14px)"><span class="pn">3</span></div>
+      <div class="rj45-pin" style="background:#3b82f6"><span class="pn">4</span></div>
+      <div class="rj45-pin" style="background:repeating-linear-gradient(0deg,#f1f5f9 0 7px,#3b82f6 7px 14px)"><span class="pn">5</span></div>
+      <div class="rj45-pin" style="background:#22c55e"><span class="pn">6</span></div>
+      <div class="rj45-pin" style="background:repeating-linear-gradient(0deg,#f1f5f9 0 7px,#92400e 7px 14px)"><span class="pn">7</span></div>
+      <div class="rj45-pin" style="background:#92400e"><span class="pn">8</span></div>
+    </div>
+    <div class="plug-cap">T568B &mdash; gold pins facing you, locking clip underneath. Pin 1 on the left.</div>
+    <div class="pin-grid" style="margin-top:12px">
+      <div class="pin-col">
+        <h4>T568B (most common)</h4>
+        <div class="pin-row"><span class="pin-n">1</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#f59e0b 5px 10px)"></span><span class="pin-name">White / Orange</span></div>
+        <div class="pin-row"><span class="pin-n">2</span><span class="wire" style="background:#f59e0b"></span><span class="pin-name">Orange</span></div>
+        <div class="pin-row"><span class="pin-n">3</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#22c55e 5px 10px)"></span><span class="pin-name">White / Green</span></div>
+        <div class="pin-row"><span class="pin-n">4</span><span class="wire" style="background:#3b82f6"></span><span class="pin-name">Blue</span></div>
+        <div class="pin-row"><span class="pin-n">5</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#3b82f6 5px 10px)"></span><span class="pin-name">White / Blue</span></div>
+        <div class="pin-row"><span class="pin-n">6</span><span class="wire" style="background:#22c55e"></span><span class="pin-name">Green</span></div>
+        <div class="pin-row"><span class="pin-n">7</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#92400e 5px 10px)"></span><span class="pin-name">White / Brown</span></div>
+        <div class="pin-row"><span class="pin-n">8</span><span class="wire" style="background:#92400e"></span><span class="pin-name">Brown</span></div>
+      </div>
+      <div class="pin-col">
+        <h4>T568A</h4>
+        <div class="pin-row"><span class="pin-n">1</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#22c55e 5px 10px)"></span><span class="pin-name">White / Green</span></div>
+        <div class="pin-row"><span class="pin-n">2</span><span class="wire" style="background:#22c55e"></span><span class="pin-name">Green</span></div>
+        <div class="pin-row"><span class="pin-n">3</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#f59e0b 5px 10px)"></span><span class="pin-name">White / Orange</span></div>
+        <div class="pin-row"><span class="pin-n">4</span><span class="wire" style="background:#3b82f6"></span><span class="pin-name">Blue</span></div>
+        <div class="pin-row"><span class="pin-n">5</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#3b82f6 5px 10px)"></span><span class="pin-name">White / Blue</span></div>
+        <div class="pin-row"><span class="pin-n">6</span><span class="wire" style="background:#f59e0b"></span><span class="pin-name">Orange</span></div>
+        <div class="pin-row"><span class="pin-n">7</span><span class="wire" style="background:repeating-linear-gradient(45deg,#f1f5f9 0 5px,#92400e 5px 10px)"></span><span class="pin-name">White / Brown</span></div>
+        <div class="pin-row"><span class="pin-n">8</span><span class="wire" style="background:#92400e"></span><span class="pin-name">Brown</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Fiber Types &amp; Jacket Colors</h2>
+    <table class="ref-table" style="margin-top:8px">
+      <thead><tr><th>Type</th><th>Jacket</th><th>Core / Mode</th><th>Typical Reach</th></tr></thead>
+      <tbody>
+        <tr><td>OM1</td><td><span class="fdot" style="background:#f59e0b"></span>Orange</td><td>62.5/125 multimode</td><td>1G ~275 m (legacy)</td></tr>
+        <tr><td>OM2</td><td><span class="fdot" style="background:#f59e0b"></span>Orange</td><td>50/125 multimode</td><td>1G ~550 m</td></tr>
+        <tr><td>OM3</td><td><span class="fdot" style="background:#06b6d4"></span>Aqua</td><td>50/125 laser-optimized</td><td>10G ~300 m</td></tr>
+        <tr><td>OM4</td><td><span class="fdot" style="background:#06b6d4"></span>Aqua</td><td>50/125 laser-optimized</td><td>10G ~400 m</td></tr>
+        <tr><td>OM5</td><td><span class="fdot" style="background:#84cc16"></span>Lime</td><td>50/125 wideband MM</td><td>SWDM multi-lane</td></tr>
+        <tr><td>OS2</td><td><span class="fdot" style="background:#eab308"></span>Yellow</td><td>9/125 single-mode</td><td>10G+ many km</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-note">Jacket colors are conventions, not guarantees &mdash; always verify the print legend on the cable.</div>
+  </div>
+
+  <div class="card section">
+    <h2>Fiber Strand Color Order (TIA-598)</h2>
+    <div class="small">Standard 12-fiber sequence. A 6-strand cable uses the top row; 12-strand uses both.</div>
+    <div class="strand6-row-label">Strands 1&ndash;6</div>
+    <div class="strand6">
+      <div class="sc"><div class="sb" style="background:#3b82f6"></div><span class="sn">1</span>Blue</div>
+      <div class="sc"><div class="sb" style="background:#f59e0b"></div><span class="sn">2</span>Orange</div>
+      <div class="sc"><div class="sb" style="background:#22c55e"></div><span class="sn">3</span>Green</div>
+      <div class="sc"><div class="sb" style="background:#92400e"></div><span class="sn">4</span>Brown</div>
+      <div class="sc"><div class="sb" style="background:#64748b"></div><span class="sn">5</span>Slate</div>
+      <div class="sc"><div class="sb" style="background:#f1f5f9"></div><span class="sn">6</span>White</div>
+    </div>
+    <div class="strand6-row-label">Strands 7&ndash;12</div>
+    <div class="strand6">
+      <div class="sc"><div class="sb" style="background:#ef4444"></div><span class="sn">7</span>Red</div>
+      <div class="sc"><div class="sb" style="background:#1f2937"></div><span class="sn">8</span>Black</div>
+      <div class="sc"><div class="sb" style="background:#eab308"></div><span class="sn">9</span>Yellow</div>
+      <div class="sc"><div class="sb" style="background:#8b5cf6"></div><span class="sn">10</span>Violet</div>
+      <div class="sc"><div class="sb" style="background:#ec4899"></div><span class="sn">11</span>Rose</div>
+      <div class="sc"><div class="sb" style="background:#06b6d4"></div><span class="sn">12</span>Aqua</div>
+    </div>
+  </div>
+
+</div>
+</section>
+
 <footer>BIG Kit &mdash; field capture for site records. Data stays on this device until you export or save a file.</footer>
 
 <!-- switch add/edit modal -->
@@ -549,6 +687,11 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
     <div class="small">Point the camera at the barcode, QR, or Data Matrix label.</div>
     <div id="reader"></div>
     <div class="scan-status" id="scan-status"></div>
+    <div id="scan-rapid" class="hidden" style="margin-top:10px">
+      <span class="pill">Added this batch: <strong id="scan-count">0</strong></span>
+      <button class="btn tiny" id="scan-undo" style="margin-left:8px">Undo last</button>
+      <div class="small" id="scan-last" style="margin-top:8px"></div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" id="scan-cancel">Cancel</button>
     </div>
@@ -572,6 +715,7 @@ function showTab(name){
   $('tab-ports').classList.toggle('hidden',name!=='ports');
   $('tab-inventory').classList.toggle('hidden',name!=='inventory');
   $('tab-projects').classList.toggle('hidden',name!=='projects');
+  $('tab-reference').classList.toggle('hidden',name!=='reference');
   if(name==='projects')renderProjects();
   window.currentTab=name;
 }
@@ -813,7 +957,7 @@ function delSwitch(){
 /* ================= INVENTORY ================= */
 let inv=[], invEditing=null;
 const invTbody=$('inv-tbody');
-function invBlank(){return {id:'u'+Date.now()+Math.floor(Math.random()*1000),item:'',model:'',serial:'',mac:'',status:'Received',done:'no',config:'no',tested:'no',labeled:'no',site:'',date:todayStr(),cond:'new',tech:'',notes:''};}
+function invBlank(){return {id:'u'+Date.now()+Math.floor(Math.random()*1000),item:'',model:'',serial:'',mac:'',status:'Received',done:'no',config:'na',tested:'na',labeled:'na',site:'',date:todayStr(),cond:'new',tech:'',notes:''};}
 function invReadForm(){
   return {item:$('inv-item').value.trim(),model:$('inv-model').value.trim(),serial:$('inv-serial').value.trim(),
     mac:$('inv-mac').value.trim(),status:$('inv-status').value,done:$('inv-done').value,config:$('inv-config').value,
@@ -822,8 +966,8 @@ function invReadForm(){
 }
 function invFill(rec){
   $('inv-item').value=rec.item||'';$('inv-model').value=rec.model||'';$('inv-serial').value=rec.serial||'';$('inv-mac').value=rec.mac||'';
-  $('inv-status').value=rec.status||'Received';$('inv-done').value=rec.done||'no';$('inv-config').value=rec.config||'no';
-  $('inv-tested').value=rec.tested||'no';$('inv-labeled').value=rec.labeled||'no';$('inv-site').value=rec.site||'';
+  $('inv-status').value=rec.status||'Received';$('inv-done').value=rec.done||'no';$('inv-config').value=rec.config||'na';
+  $('inv-tested').value=rec.tested||'na';$('inv-labeled').value=rec.labeled||'na';$('inv-site').value=rec.site||'';
   $('inv-date').value=rec.date||todayStr();$('inv-cond').value=rec.cond||'new';$('inv-tech').value=rec.tech||'';$('inv-notes').value=rec.notes||'';
 }
 function invClear(){invEditing=null;$('inv-form-title').textContent='Add Unit';$('inv-add').textContent='Add Unit';invFill(invBlank());if(curSite())$('inv-site').value=curSite().name;$('inv-item').focus();}
@@ -886,30 +1030,51 @@ function invRender(){
 
 /* ---- item searchable combobox ---- */
 const ITEM_SEEDS=['AP','Access Point','DMP','Antenna','Speaker','Switch','Camera','PoE Injector','Bridge'];
-let comboActive=-1;
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function itemOptions(){
-  const map=new Map();
-  ITEM_SEEDS.forEach(s=>map.set(s.toLowerCase(),s));
-  inv.forEach(r=>{if(r.item){const k=r.item.toLowerCase();if(!map.has(k))map.set(k,r.item);}});
-  return [...map.values()].sort((a,b)=>a.localeCompare(b));
+function poolInv(field){const m=new Map();Object.values(STATE.sites).forEach(s=>s.inventory.forEach(r=>{const v=((r[field]||'')+'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v);}));return m;}
+function poolPort(field){const m=new Map();Object.values(STATE.sites).forEach(s=>Object.values(s.switches).forEach(sw=>Object.values(sw.db).forEach(p=>{const v=((p&&p[field]||'')+'').trim();if(v&&!m.has(v.toLowerCase()))m.set(v.toLowerCase(),v);})));return m;}
+function sortedVals(map){return [...map.values()].sort((a,b)=>a.localeCompare(b));}
+function itemOptions(){const m=poolInv('item');ITEM_SEEDS.forEach(s=>{if(!m.has(s.toLowerCase()))m.set(s.toLowerCase(),s);});return sortedVals(m);}
+function modelOptions(){return sortedVals(poolInv('model'));}
+function techOptions(){const m=poolInv('tech');poolPort('tech').forEach((v,k)=>{if(!m.has(k))m.set(k,v);});return sortedVals(m);}
+function descOptions(){return sortedVals(poolPort('desc'));}
+function setupCombo(inputId,listId,getOptions){
+  const input=$(inputId),list=$(listId),wrap=input.parentElement;let active=-1;
+  function render(){
+    const raw=input.value.trim(),q=raw.toLowerCase();
+    const opts=getOptions().filter(o=>!q||o.toLowerCase().includes(q));
+    let html=opts.map(o=>`<div class="combo-opt" data-val="${esc(o)}">${esc(o)}</div>`).join('');
+    if(raw&&!opts.some(o=>o.toLowerCase()===q))html+=`<div class="combo-opt combo-add" data-val="${esc(raw)}">Use "${esc(raw)}"</div>`;
+    active=-1;
+    if(!html){list.classList.add('hidden');return;}
+    list.innerHTML=html;list.classList.remove('hidden');
+  }
+  function close(){list.classList.add('hidden');}
+  function choose(v){input.value=v;close();}
+  input.addEventListener('focus',render);
+  input.addEventListener('input',render);
+  list.addEventListener('click',e=>{const o=e.target.closest('.combo-opt');if(o)choose(o.dataset.val);});
+  input.addEventListener('keydown',e=>{
+    if(list.classList.contains('hidden'))return;
+    const opts=[...list.querySelectorAll('.combo-opt')];
+    if(e.key==='ArrowDown'){e.preventDefault();active=Math.min(opts.length-1,active+1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();active=Math.max(0,active-1);}
+    else if(e.key==='Enter'){if(active>=0&&opts[active]){e.preventDefault();choose(opts[active].dataset.val);}else close();return;}
+    else if(e.key==='Escape'){close();return;}
+    else return;
+    opts.forEach((o,i)=>o.classList.toggle('active',i===active));
+    if(opts[active])opts[active].scrollIntoView({block:'nearest'});
+  });
+  document.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});
 }
-function comboRender(){
-  const input=$('inv-item'), list=$('inv-item-list');
-  const raw=input.value.trim(), q=raw.toLowerCase();
-  const opts=itemOptions().filter(o=>!q||o.toLowerCase().includes(q));
-  let html=opts.map(o=>`<div class="combo-opt" data-val="${esc(o)}">${esc(o)}</div>`).join('');
-  const exact=opts.some(o=>o.toLowerCase()===q);
-  if(raw && !exact)html+=`<div class="combo-opt combo-add" data-val="${esc(raw)}">Use "${esc(raw)}"</div>`;
-  comboActive=-1;
-  if(!html){list.classList.add('hidden');return;}
-  list.innerHTML=html;list.classList.remove('hidden');
-}
-function comboChoose(val){$('inv-item').value=val;$('inv-item-list').classList.add('hidden');}
-function comboClose(){$('inv-item-list').classList.add('hidden');}
 
 /* ================= scanner ================= */
 let qrInstance=null, scanning=false, scanHandled=false;
+let scanRapid=false, scanTarget=null, scanLastCode=null, scanLastTime=0, scanAdded=[], scanSeen=null;
+function unitExists(serial,mac){
+  const s=(serial||'').toLowerCase(), m=(mac||'').replace(/[^0-9a-f]/gi,'').toLowerCase();
+  return curSite().inventory.some(u=>{const us=(u.serial||'').toLowerCase(),um=(u.mac||'').replace(/[^0-9a-f]/gi,'').toLowerCase();return (s&&us===s)||(m&&um===m);});
+}
 function setScanStatus(t){$('scan-status').textContent=t;}
 function scanFormats(){
   if(typeof Html5QrcodeSupportedFormats==='undefined')return undefined;
@@ -945,36 +1110,61 @@ function parseScan(text){
   out.mac=macRaw;out.serial=serial;
   return out;
 }
-function openScanner(targetId){
+function openScanner(targetId,rapid){
   if(typeof Html5Qrcode==='undefined'){alert('Scanner library did not load. Check your connection, or type the value manually.');return;}
+  scanRapid=!!rapid;scanTarget=targetId;
+  scanHandled=false;scanLastCode=null;scanLastTime=0;scanAdded=[];scanSeen=new Set();
   const labelMap={'inv-serial':'Scan Serial','inv-mac':'Scan MAC'};
-  $('scan-title').textContent=labelMap[targetId]||'Scan';
+  $('scan-title').textContent=scanRapid?'Batch Scan':(labelMap[targetId]||'Scan');
+  $('scan-rapid').classList.toggle('hidden',!scanRapid);
+  $('scan-count').textContent='0';$('scan-last').textContent='';
+  $('scan-cancel').textContent=scanRapid?'Done':'Cancel';
   $('scan-modal').classList.remove('hidden');
   setScanStatus('Starting camera...');
-  scanHandled=false;
   qrInstance=new Html5Qrcode('reader',{verbose:false});
   const cfg={fps:10,qrbox:{width:260,height:170}};
   const fmts=scanFormats();if(fmts)cfg.formatsToSupport=fmts;
-  qrInstance.start({facingMode:'environment'},cfg,
-    decoded=>{
-      if(scanHandled)return;scanHandled=true;
-      const parsed=parseScan(decoded);
-      const got=[];
-      if(parsed.mac){$('inv-mac').value=macAuto?formatMac(parsed.mac):parsed.mac;got.push('MAC');}
-      if(parsed.serial){$('inv-serial').value=serialCaps?parsed.serial.toUpperCase():parsed.serial;got.push('serial');}
-      if(!got.length){
-        let val=(decoded||'').trim();
-        if(targetId==='inv-mac'&&macAuto)val=formatMac(val);
-        if(targetId==='inv-serial'&&serialCaps)val=val.toUpperCase();
-        $(targetId).value=val;
-      }
-      if(navigator.vibrate)navigator.vibrate(60);
-      setScanStatus(got.length?('Captured '+got.join(' + ')):('Captured: '+decoded));
-      closeScanner();
-    },
-    ()=>{}
-  ).then(()=>{scanning=true;setScanStatus('Point at the label.');})
-   .catch(err=>{setScanStatus('Camera could not start: '+err+'. The scanner needs the published HTTPS page with camera access (it will not run in a file:// page or the in-app preview). You can type the value manually.');scanning=false;});
+  qrInstance.start({facingMode:'environment'},cfg,onScan,()=>{})
+    .then(()=>{scanning=true;setScanStatus(scanRapid?'Scan each label \u2014 units add automatically.':'Point at the label.');})
+    .catch(err=>{setScanStatus('Camera could not start: '+err+'. The scanner needs the published HTTPS page with camera access (it will not run in a file:// page or the in-app preview). You can type the value manually.');scanning=false;});
+}
+function onScan(decoded){
+  if(!scanRapid){
+    if(scanHandled)return;scanHandled=true;
+    const parsed=parseScan(decoded),got=[];
+    if(parsed.mac){$('inv-mac').value=macAuto?formatMac(parsed.mac):parsed.mac;got.push('MAC');}
+    if(parsed.serial){$('inv-serial').value=serialCaps?parsed.serial.toUpperCase():parsed.serial;got.push('serial');}
+    if(!got.length){let val=(decoded||'').trim();if(scanTarget==='inv-mac'&&macAuto)val=formatMac(val);if(scanTarget==='inv-serial'&&serialCaps)val=val.toUpperCase();$(scanTarget).value=val;}
+    if(navigator.vibrate)navigator.vibrate(60);
+    setScanStatus(got.length?('Captured '+got.join(' + ')):('Captured: '+decoded));
+    closeScanner();return;
+  }
+  const now=Date.now();
+  if(decoded===scanLastCode&&now-scanLastTime<2500)return;   // same label re-firing
+  scanLastCode=decoded;scanLastTime=now;
+  if(scanSeen.has(decoded)){setScanStatus('Already scanned in this batch \u2014 skipped.');return;}
+  const parsed=parseScan(decoded);
+  const serial=parsed.serial?(serialCaps?parsed.serial.toUpperCase():parsed.serial):'';
+  const mac=parsed.mac?(macAuto?formatMac(parsed.mac):parsed.mac):'';
+  if(!serial&&!mac){setScanStatus('No serial or MAC found in that code \u2014 skipped.');return;}
+  if(unitExists(serial,mac)){scanSeen.add(decoded);if(navigator.vibrate)navigator.vibrate([40,40,40]);setScanStatus('Duplicate \u2014 already in this site\u2019s inventory. Skipped.');return;}
+  const t=invReadForm();
+  const rec={id:'u'+Date.now()+Math.floor(Math.random()*1000),item:t.item,model:t.model,serial:serial,mac:mac,status:t.status,done:t.done,config:t.config,tested:t.tested,labeled:t.labeled,site:t.site||curSite().name,date:t.date||todayStr(),cond:t.cond,tech:t.tech,notes:t.notes};
+  inv.push(rec);scanAdded.push({id:rec.id,code:decoded});scanSeen.add(decoded);
+  if(navigator.vibrate)navigator.vibrate(60);
+  $('scan-count').textContent=String(scanAdded.length);
+  $('scan-last').textContent='Added: '+(rec.item||'unit')+(serial?(' \u00b7 '+serial):'')+(mac?(' \u00b7 '+mac):'');
+  setScanStatus('Added. Keep scanning, or tap Done.');
+  touchSite();invRender();persist();
+}
+function scanUndo(){
+  if(!scanAdded.length){setScanStatus('Nothing to undo.');return;}
+  const last=scanAdded.pop();
+  const i=inv.findIndex(u=>u.id===last.id);if(i>=0)inv.splice(i,1);
+  scanSeen.delete(last.code);
+  $('scan-count').textContent=String(scanAdded.length);
+  $('scan-last').textContent='Removed last unit.';
+  touchSite();invRender();persist();
 }
 function closeScanner(){
   const finish=()=>{scanning=false;try{if(qrInstance)qrInstance.clear();}catch(e){}qrInstance=null;$('scan-modal').classList.add('hidden');};
@@ -992,12 +1182,29 @@ function makeRowsFor(sw){
 }
 function swUpCount(sw){let up=0;const total=models[sw.model].ports;for(let i=1;i<=total;i++){const p=sw.db[i];if(p&&p.admin!=='down'&&p.link==='up')up++;}return up;}
 function sheetName(base,used){let n=base.replace(/[\[\]\:\*\?\/\\]/g,' ').slice(0,28).trim()||'Switch';let name=n,i=2;while(used.has(name.toLowerCase())){name=(n.slice(0,26)+' '+i);i++;}used.add(name.toLowerCase());return name;}
-function invRows(){
+function yn(v){return v==='yes'?'Yes':v==='no'?'No':'';}
+function invRowsFrom(list){
   const rows=[['Item','Model','Serial','MAC','Status','Done','Configured','Tested','Labeled','Site/Job','Date Received','Condition','Tech','Notes']];
-  inv.forEach(r=>rows.push([r.item,r.model,r.serial,r.mac,r.status,r.done,r.config,r.tested,r.labeled,r.site,r.date,r.cond,r.tech,r.notes]));
+  list.forEach(r=>rows.push([r.item,r.model,r.serial,r.mac,r.status,yn(r.done),yn(r.config),yn(r.tested),yn(r.labeled),r.site,r.date,r.cond,r.tech,r.notes]));
   return rows;
 }
+function invRows(){return invRowsFrom(inv);}
 function dropBlankColumns(rows){const keep=rows[0].map((_,c)=>rows.slice(1).some(r=>String(r[c]??'').trim()!==''));return rows.map(r=>r.filter((_,c)=>keep[c]));}
+function downloadBlob(blob,filename){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);}
+function shareOrDownload(blob,filename){
+  try{
+    const file=new File([blob],filename,{type:blob.type});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:filename}).catch(err=>{if(err&&err.name!=='AbortError')downloadBlob(blob,filename);});
+      return;
+    }
+  }catch(e){}
+  downloadBlob(blob,filename);
+}
+function saveWorkbook(wb,filename){
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  shareOrDownload(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),filename);
+}
 function exportPorts(scope){
   save();
   const site=curSite(),cur=curSwitch();
@@ -1016,7 +1223,7 @@ function exportPorts(scope){
   const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:22},{wch:28}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
   const tag=scope==='switch'?((cur.closet?cur.closet+'_':'')+cur.name):scope;
-  XLSX.writeFile(wb,'big_kit_ports_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'_'+tag.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
+  saveWorkbook(wb,'big_kit_ports_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'_'+tag.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
 }
 function exportInventory(){
   const site=curSite();
@@ -1028,14 +1235,13 @@ function exportInventory(){
     ['Done',inv.filter(r=>r.done==='yes').length]];
   const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:18},{wch:24}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
-  XLSX.writeFile(wb,'big_kit_inventory_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
+  saveWorkbook(wb,'big_kit_inventory_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
 }
 function saveLocal(){
   save();
   const data={app:'bigkit',version:2,state:STATE};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='big_kit_data.json';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+  shareOrDownload(blob,'big_kit_data.json');
 }
 function applyState(d){
   if(d&&d.state&&d.state.sites)STATE=d.state;
@@ -1069,14 +1275,13 @@ function exportSite(siteId){
   const site=STATE.sites[siteId];if(!site)return;
   const wb=XLSX.utils.book_new(),used=new Set();
   Object.values(site.switches).forEach(sw=>{const ws=XLSX.utils.aoa_to_sheet(dropBlankColumns(makeRowsFor(sw)));ws['!cols']=PORT_HDR.map(()=>({wch:16}));XLSX.utils.book_append_sheet(wb,ws,sheetName((sw.closet?sw.closet+' ':'')+sw.name,used));});
-  const ir=[['Item','Model','Serial','MAC','Status','Done','Configured','Tested','Labeled','Site/Job','Date Received','Condition','Tech','Notes']];
-  site.inventory.forEach(r=>ir.push([r.item,r.model,r.serial,r.mac,r.status,r.done,r.config,r.tested,r.labeled,r.site,r.date,r.cond,r.tech,r.notes]));
+  const ir=invRowsFrom(site.inventory);
   const wsi=XLSX.utils.aoa_to_sheet(dropBlankColumns(ir));wsi['!cols']=ir[0].map(()=>({wch:18}));
   XLSX.utils.book_append_sheet(wb,wsi,'Inventory');
   const summary=[['Metric','Value'],['Site',site.name],['Switches',Object.keys(site.switches).length],['Ports logged',portsLoggedCount(site)],['Inventory units',site.inventory.length],['Updated',fmtDate(site.updatedAt)],['Created',fmtDate(site.createdAt)]];
   const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:20},{wch:28}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
-  XLSX.writeFile(wb,'big_kit_site_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
+  saveWorkbook(wb,'big_kit_site_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
 }
 function openProject(id){if(!STATE.sites[id])return;activateSite(id);persist();showTab('ports');}
 function renameSiteById(id){const s=STATE.sites[id];if(!s)return;const name=prompt('Rename site:',s.name);if(name===null)return;s.name=name.trim()||s.name;s.updatedAt=Date.now();renderSiteSelect();if(id===STATE.activeSite){updateSiteLabel();invClear();invRender();}renderProjects();persist();}
@@ -1171,25 +1376,18 @@ $('mac-auto').onclick=()=>{
   $('mac-auto').textContent=macAuto?'Auto :':'Manual';
   if(macAuto)$('inv-mac').value=formatMac($('inv-mac').value);
 };
-$('inv-item').addEventListener('focus',comboRender);
-$('inv-item').addEventListener('input',comboRender);
-$('inv-item-list').addEventListener('click',e=>{const o=e.target.closest('.combo-opt');if(o)comboChoose(o.dataset.val);});
-$('inv-item').addEventListener('keydown',e=>{
-  const list=$('inv-item-list');
-  if(list.classList.contains('hidden'))return;
-  const opts=[...list.querySelectorAll('.combo-opt')];
-  if(e.key==='ArrowDown'){e.preventDefault();comboActive=Math.min(opts.length-1,comboActive+1);}
-  else if(e.key==='ArrowUp'){e.preventDefault();comboActive=Math.max(0,comboActive-1);}
-  else if(e.key==='Enter'){if(comboActive>=0&&opts[comboActive]){e.preventDefault();comboChoose(opts[comboActive].dataset.val);}else comboClose();return;}
-  else if(e.key==='Escape'){comboClose();return;}
-  else return;
-  opts.forEach((o,i)=>o.classList.toggle('active',i===comboActive));
-  if(opts[comboActive])opts[comboActive].scrollIntoView({block:'nearest'});
-});
-document.addEventListener('click',e=>{if(!e.target.closest('#inv-item-combo'))comboClose();});
-document.querySelectorAll('.scan-btn').forEach(b=>b.onclick=e=>{e.preventDefault();openScanner(b.dataset.target);});
+setupCombo('inv-item','inv-item-list',itemOptions);
+setupCombo('inv-model','inv-model-list',modelOptions);
+setupCombo('inv-tech','inv-tech-list',techOptions);
+setupCombo('desc','desc-list',descOptions);
+setupCombo('tech','tech-list',techOptions);
+document.querySelectorAll('.scan-btn').forEach(b=>b.onclick=e=>{e.preventDefault();openScanner(b.dataset.target,false);});
+$('inv-batch').onclick=e=>{e.preventDefault();openScanner(null,true);};
+$('scan-undo').onclick=e=>{e.preventDefault();scanUndo();};
 $('scan-cancel').onclick=closeScanner;
 $('scan-modal').addEventListener('click',e=>{if(e.target.id==='scan-modal')closeScanner();});
+$('cv-ft').addEventListener('input',()=>{const v=parseFloat($('cv-ft').value);$('cv-m').value=isNaN(v)?'':(v*0.3048).toFixed(2);});
+$('cv-m').addEventListener('input',()=>{const v=parseFloat($('cv-m').value);$('cv-ft').value=isNaN(v)?'':(v/0.3048).toFixed(2);});
 
 /* ================= local persistence ================= */
 const STORE_KEY='bigkit-state-v1';
