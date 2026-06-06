@@ -293,13 +293,6 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
         </div>
       </div>
     </div>
-    <div class="site-bar">
-      <span class="lbl">SITE</span>
-      <select id="site-select"></select>
-      <button class="btn tiny" id="site-add">+ New</button>
-      <button class="btn tiny" id="site-rename">Rename</button>
-      <button class="btn tiny" id="site-del">Delete</button>
-    </div>
     <div class="tabbar-wrap">
     <div class="tabbar">
       <button class="tab" data-tab="clock" id="tabbtn-clock" style="display:none">Clock In</button>
@@ -309,6 +302,13 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
       <button class="tab" data-tab="projects">Projects</button>
       <button class="tab" data-tab="settings">Settings</button>
     </div>
+    </div>
+    <div class="site-bar" id="site-bar" style="margin-top:12px;padding:0">
+      <span class="lbl">SITE</span>
+      <select id="site-select"></select>
+      <button class="btn tiny" id="site-add">+ New</button>
+      <button class="btn tiny" id="site-rename">Rename</button>
+      <button class="btn tiny" id="site-del">Delete</button>
     </div>
   </div>
 </header>
@@ -896,7 +896,7 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 </div>
 </section>
 
-<footer>BIG Kit &mdash; field capture for site records. Data stays on this device until you export or save a file. &middot; <strong>v1.2</strong></footer>
+<footer>BIG Kit &mdash; field capture for site records. Data stays on this device until you export or save a file. &middot; <strong>v1.4</strong></footer>
 
 <!-- switch add/edit modal -->
 <div class="modal-overlay hidden" id="sw-modal">
@@ -917,6 +917,17 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 </div>
 
 <!-- scanner modal -->
+<div class="modal-overlay hidden" id="name-modal">
+  <div class="modal">
+    <h3 id="name-title">Name</h3>
+    <input id="name-input" autocomplete="off" placeholder="Enter name" style="margin-top:10px">
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn primary" id="name-save">Save</button>
+      <button class="btn" id="name-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="scan-modal">
   <div class="modal">
     <h3 id="scan-title">Scan</h3>
@@ -954,6 +965,7 @@ function showTab(name){
   if(name==='clock'&&!(STATE.settings&&STATE.settings.clockEnabled))name='reference';
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
   TAB_ORDER.forEach(t=>{const el=$('tab-'+t);if(el)el.classList.toggle('hidden',t!==name);});
+  const sb=$('site-bar');if(sb)sb.style.display=(name==='ports'||name==='inventory')?'':'none';
   if(name==='projects')renderProjects();
   if(name==='clock')clkRender();
   if(name==='settings')settingsRender();
@@ -1159,8 +1171,8 @@ function activateSite(siteId){
   invClear();invRender();
 }
 /* site CRUD */
-function addSite(){const name=prompt('New site name:','');if(name===null)return;const s=makeSite(name.trim()||('Site '+(Object.keys(STATE.sites).length+1)));STATE.sites[s.id]=s;activateSite(s.id);persist();}
-function renameSite(){const site=curSite();const name=prompt('Rename site:',site.name);if(name===null)return;site.name=name.trim()||site.name;touchSite();renderSiteSelect();updateSiteLabel();invClear();invRender();persist();}
+function addSite(){askName('New site name','',function(name){const s=makeSite((name||'').trim()||('Site '+(Object.keys(STATE.sites).length+1)));STATE.sites[s.id]=s;activateSite(s.id);persist();});}
+function renameSite(){const site=curSite();askName('Rename site',site.name,function(name){site.name=(name||'').trim()||site.name;touchSite();renderSiteSelect();updateSiteLabel();invClear();invRender();persist();});}
 function delSite(){if(Object.keys(STATE.sites).length<=1){alert('You need at least one site.');return;}const site=curSite();if(!confirm('Delete site "'+site.name+'" and everything in it (switches, ports, inventory)?'))return;delete STATE.sites[STATE.activeSite];STATE.activeSite=Object.keys(STATE.sites)[0];activateSite(STATE.activeSite);persist();}
 /* switch modal + CRUD */
 let swEditing=null;
@@ -1536,7 +1548,7 @@ function exportSite(siteId){
   saveWorkbook(wb,'big_kit_site_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
 }
 function openProject(id){if(!STATE.sites[id])return;activateSite(id);persist();showTab('ports');}
-function renameSiteById(id){const s=STATE.sites[id];if(!s)return;const name=prompt('Rename site:',s.name);if(name===null)return;s.name=name.trim()||s.name;s.updatedAt=Date.now();renderSiteSelect();if(id===STATE.activeSite){updateSiteLabel();invClear();invRender();}renderProjects();persist();}
+function renameSiteById(id){const s=STATE.sites[id];if(!s)return;askName('Rename site',s.name,function(name){s.name=(name||'').trim()||s.name;s.updatedAt=Date.now();renderSiteSelect();if(id===STATE.activeSite){updateSiteLabel();invClear();invRender();}renderProjects();persist();});}
 function delSiteById(id){if(Object.keys(STATE.sites).length<=1){alert('You need at least one site.');return;}const s=STATE.sites[id];if(!s)return;if(!confirm('Delete site "'+s.name+'" and everything in it (switches, ports, inventory)?'))return;const wasActive=(id===STATE.activeSite);delete STATE.sites[id];if(wasActive){STATE.activeSite=Object.keys(STATE.sites)[0];renderSiteSelect();activateSite(STATE.activeSite);}else renderSiteSelect();renderProjects();persist();}
 function toggleArchive(id){const s=STATE.sites[id];if(!s)return;s.archived=!s.archived;renderSiteSelect();renderProjects();persist();}
 function renderProjects(){
@@ -1585,6 +1597,13 @@ $('export-ports').addEventListener('change',e=>{const v=e.target.value;if(v){exp
 $('btn-export-inv').onclick=exportInventory;
 $('model-select').addEventListener('change',()=>{const sw=curSwitch();sw.model=$('model-select').value;model=sw.model;N=models[model].ports;ensureDb(sw);$('chassis-title').textContent=models[model].name;$('portCount').textContent=`${N} RJ45 + 4 SFP`;if(selected>N&&selected<101)selected=1;renderPorts();renderTable();setFields(selected);renderSwitchSelect();updateSiteLabel();touchSite();persist();});
 $('site-select').addEventListener('change',e=>{activateSite(e.target.value);persist();});
+let nameCb=null;
+function askName(title,initial,cb){nameCb=cb;$('name-title').textContent=title;$('name-input').value=initial||'';$('name-modal').classList.remove('hidden');setTimeout(function(){try{$('name-input').focus();}catch(e){}},60);}
+function nameClose(){$('name-modal').classList.add('hidden');nameCb=null;}
+$('name-save').onclick=function(){const v=$('name-input').value;const cb=nameCb;nameClose();if(cb)cb(v);};
+$('name-cancel').onclick=nameClose;
+$('name-modal').addEventListener('click',function(e){if(e.target.id==='name-modal')nameClose();});
+$('name-input').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('name-save').click();}});
 $('site-add').onclick=addSite;
 $('site-rename').onclick=renameSite;
 $('site-del').onclick=delSite;
@@ -1799,4 +1818,4 @@ if('serviceWorker' in navigator){
 }
 </script>
 </body>
-</html>
+</html> 
