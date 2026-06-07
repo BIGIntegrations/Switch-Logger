@@ -275,6 +275,8 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#94a3b8;transition:.18s}
 .sw.on{background:#0f3d24;border-color:#1f7a45}
 .sw.on::after{left:24px;background:#34d399}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0));transform:translateX(-50%);z-index:80;background:#111c30;border:1px solid var(--line);color:#e5e7eb;font-size:14px;padding:11px 16px;border-radius:12px;box-shadow:var(--shadow);max-width:88%;text-align:center;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
 </style>
 </head>
 <body>
@@ -289,8 +291,6 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
         <div class="sync-ind"><span class="sync-dot"></span>LOCAL</div>
         <div class="header-actions">
           <button class="btn green" id="btn-save">Save File</button>
-          <button class="btn blue" id="btn-load">Load File</button>
-          <button class="btn warn" id="btn-reset">Reset</button>
         </div>
       </div>
     </div>
@@ -411,24 +411,16 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
     <div class="stack">
       <div class="toolbar" style="padding:0 2px 6px 2px">
         <div><h2>Switch Face</h2><div class="small">Model for the selected switch. Click ports to edit.</div></div>
-        <div class="legend">
-          <select id="model-select" style="min-width:180px">
-            <optgroup label="Generic Cisco">
-              <option value="GEN-24">Generic Cisco 24-port</option>
-              <option value="GEN-48" selected>Generic Cisco 48-port</option>
-            </optgroup>
-            <optgroup label="Cisco-style">
-              <option value="9200L-24P">C9200L-24P</option>
-              <option value="9200L-48P">C9200L-48P</option>
-              <option value="9200-24P">C9200-24P</option>
-              <option value="9200-48P">C9200-48P</option>
-              <option value="9300L-24P">C9300L-24P</option>
-              <option value="9300L-48P">C9300L-48P</option>
-              <option value="9300-24P">C9300-24P</option>
-              <option value="9300-48P">C9300-48P</option>
-              <option value="9300-24UX">C9300-24UX</option>
-              <option value="9300-48UXM">C9300-48UXM</option>
-            </optgroup>
+        <div class="legend" style="flex-wrap:nowrap;width:100%;gap:8px">
+          <select id="model-select" style="min-width:0;flex:1 1 0">
+            <option value="GEN-24">Generic 24-port</option>
+            <option value="GEN-48" selected>Generic 48-port</option>
+          </select>
+          <select id="sfp-select" style="min-width:0;flex:1 1 0" title="SFP slots on this switch">
+            <option value="0">0 SFP</option>
+            <option value="2">2 SFP</option>
+            <option value="4">4 SFP</option>
+            <option value="8">8 SFP</option>
           </select>
         </div>
       </div>
@@ -573,6 +565,10 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
       </div>
     </div>
   </div>
+  <details class="more-panel" id="sw-trash-panel" style="display:none">
+    <summary style="padding:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700">Recently deleted switches</span><span class="more-hint" id="sw-trash-count">0</span></summary>
+    <div style="padding:0 14px 14px"><div id="sw-trash"></div></div>
+  </details>
 </div>
 </section>
 
@@ -820,6 +816,42 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
   </div>
 
   <div class="card section">
+    <h2>Fiber Polarity &amp; Rolling</h2>
+    <div class="small">Every strand is one-way: Transmit (Tx) on one end must land on Receive (Rx) at the other. A duplex LC carries the pair.</div>
+    <svg viewBox="0 0 440 244" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;margin:10px 0;background:#0a0f1a;border:1px solid var(--line);border-radius:12px">
+      <g font-family="ui-monospace,monospace" font-size="13" fill="#cbd5e1">
+        <text x="14" y="31">F1</text><text x="14" y="65">F2</text>
+        <text x="408" y="31">F2</text><text x="408" y="65">F1</text>
+      </g>
+      <rect x="44" y="18" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="44" y="52" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="360" y="18" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="360" y="52" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <line x1="80" y1="26" x2="360" y2="60" stroke="#3b82f6" stroke-width="3"/>
+      <line x1="80" y1="60" x2="360" y2="26" stroke="#eab308" stroke-width="3"/>
+      <text x="220" y="92" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" fill="#e5e7eb">Type-A &mdash; Straight: No Tx&ndash;Rx Flip</text>
+
+      <g font-family="ui-monospace,monospace" font-size="13" fill="#cbd5e1">
+        <text x="14" y="149">F1</text><text x="14" y="183">F2</text>
+        <text x="408" y="149">F1</text><text x="408" y="183">F2</text>
+      </g>
+      <rect x="44" y="136" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="44" y="170" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="360" y="136" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <rect x="360" y="170" width="36" height="16" rx="3" fill="#2563eb" stroke="#60a5fa"/>
+      <line x1="80" y1="144" x2="360" y2="144" stroke="#3b82f6" stroke-width="3"/>
+      <line x1="80" y1="178" x2="360" y2="178" stroke="#eab308" stroke-width="3"/>
+      <text x="220" y="210" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" fill="#e5e7eb">Type-B &mdash; Crossover: Tx&ndash;Rx Flip</text>
+    </svg>
+    <div style="font-size:13px;color:#cbd5e1;line-height:1.85">
+      <div><b>No light / no link?</b> Almost always Tx and Rx are reversed (Tx meets Tx). The fix is to <b>roll the pair</b>.</div>
+      <div style="margin-top:6px"><b>Rolling</b> &mdash; on the LC duplex, twist the two connectors out of the clip, swap their positions (or flip the duplex boot), and re-seat. That flips Tx and Rx so the link comes up.</div>
+      <div style="margin-top:6px"><b>Roll one end only.</b> Flipping both ends just puts you back where you started.</div>
+    </div>
+    <div class="ref-note">Most factory duplex cords are already crossed so Tx&rarr;Rx out of the box &mdash; you roll when a run is wired straight or the SFP shows no receive light. Quick check: a red VFL or the transceiver&rsquo;s own light at the far end. Always clean the ferrule before seating, and keep both ends the same fiber type (don&rsquo;t mix single-mode and multimode).</div>
+  </div>
+
+  <div class="card section">
     <h2>Fiber Types &amp; Jacket Colors</h2>
     <table class="ref-table" style="margin-top:8px">
       <thead><tr><th>Type</th><th>Jacket</th><th>Core / Mode</th><th>Typical Reach</th></tr></thead>
@@ -897,10 +929,37 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
       <div class="sw" id="set-poe" role="switch" tabindex="0"></div>
     </div>
   </div>
+  <div class="card section">
+    <h3>Backup &amp; Restore</h3>
+    <div class="small" style="margin:4px 0 12px">Save your whole kit (all sites, switches, ports and inventory) to a file, or load one back in.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn green" id="btn-save2">Save File</button>
+      <button class="btn blue" id="btn-load2">Load File</button>
+    </div>
+  </div>
+  <div class="card section" style="border-color:rgba(239,68,68,.5)">
+    <h3 style="color:#f87171">Danger Zone</h3>
+    <div class="small" style="margin:4px 0 12px">Reset clears all sites, switches, ports and inventory on this device. Your time logs and settings are kept. This cannot be undone &mdash; save a file first.</div>
+    <button class="btn warn" id="btn-reset2">Reset everything</button>
+  </div>
 </div>
 </section>
 
-<footer>BIG Kit &mdash; field capture for site records. Data stays on this device until you export or save a file. &middot; <strong>v1.8</strong></footer>
+<footer>BIG Kit &mdash; field capture for site records. Data stays on this device until you export or save a file. &middot; <strong>v2.6</strong></footer>
+
+<div id="toast"></div>
+
+<!-- confirm dialog -->
+<div class="modal-overlay hidden" id="confirm-modal">
+  <div class="modal">
+    <h3 id="confirm-title">Confirm</h3>
+    <div id="confirm-msg" style="margin:8px 0 4px;font-size:14px;color:#cbd5e1;line-height:1.5"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn primary" id="confirm-yes">Yes</button>
+      <button class="btn" id="confirm-no">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- switch add/edit modal -->
 <div class="modal-overlay hidden" id="sw-modal">
@@ -911,8 +970,10 @@ footer{border-top:1px solid var(--line);padding:16px;text-align:center;color:var
     <div class="chips" id="sw-closet-chips"></div>
     <label>Switch name</label>
     <input id="sw-name" placeholder="SW1, Core...">
-    <label>Model</label>
+    <label>Layout</label>
     <select id="sw-model"></select>
+    <label>Model # (optional)</label>
+    <input id="sw-modelnum" placeholder="C9300-48UXM, etc." autocomplete="off">
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn primary" id="sw-save">Save</button>
       <button class="btn" id="sw-cancel">Cancel</button>
@@ -981,20 +1042,22 @@ window.currentTab='reference';
 
 /* ================= PORTS ================= */
 const models={
-  'GEN-24':{name:'Generic Cisco 24-Port',ports:24},
-  'GEN-48':{name:'Generic Cisco 48-Port',ports:48},
-  '9200L-24P':{name:'C9200L-24P',ports:24},
-  '9200L-48P':{name:'C9200L-48P',ports:48},
-  '9200-24P':{name:'C9200-24P',ports:24},
-  '9200-48P':{name:'C9200-48P',ports:48},
-  '9300L-24P':{name:'C9300L-24P',ports:24},
-  '9300L-48P':{name:'C9300L-48P',ports:48},
-  '9300-24P':{name:'C9300-24P',ports:24},
-  '9300-48P':{name:'C9300-48P',ports:48},
-  '9300-24UX':{name:'C9300-24UX',ports:24},
-  '9300-48UXM':{name:'C9300-48UXM',ports:48}
+  'GEN-24':{name:'Generic Cisco 24-Port',ports:24,sfp:4},
+  'GEN-48':{name:'Generic Cisco 48-Port',ports:48,sfp:4},
+  '9200L-24P':{name:'C9200L-24P',ports:24,sfp:4},
+  '9200L-48P':{name:'C9200L-48P',ports:48,sfp:4},
+  '9200-24P':{name:'C9200-24P',ports:24,sfp:4},
+  '9200-48P':{name:'C9200-48P',ports:48,sfp:4},
+  '9300L-24P':{name:'C9300L-24P',ports:24,sfp:4},
+  '9300L-48P':{name:'C9300L-48P',ports:48,sfp:4},
+  '9300-24P':{name:'C9300-24P',ports:24,sfp:8},
+  '9300-48P':{name:'C9300-48P',ports:48,sfp:8},
+  '9300-24UX':{name:'C9300-24UX',ports:24,sfp:8},
+  '9300-48UXM':{name:'C9300-48UXM',ports:48,sfp:8}
 };
-let model='GEN-48', N=48, db={}, selected=1;
+function modelSfp(mk){return (models[mk]&&typeof models[mk].sfp==='number')?models[mk].sfp:4;}
+function swSfp(sw){return (sw&&typeof sw.sfp==='number')?sw.sfp:modelSfp(sw&&sw.model);}
+let model='GEN-48', N=48, SFP=4, db={}, selected=1;
 const rj45Top=$('rj45-top'), rj45Bottom=$('rj45-bottom'), uplinks=$('uplinks'), tbody=$('tbody');
 
 function blankPort(media='rj45'){
@@ -1003,7 +1066,7 @@ function blankPort(media='rj45'){
     patchColor:'blank',deviceType:'blank',desc:'',device:'',neighbor:'',neighborPort:'',mac:'',
     location:'',lastseen:'',tech:'',notes:'',speed:''};
 }
-function buildDb(modelKey){const total=models[modelKey].ports;const d={};for(let i=1;i<=total;i++)d[i]=blankPort('rj45');for(let i=101;i<=104;i++)d[i]=blankPort('sfp');return d;}
+function buildDb(modelKey,sfp){const total=models[modelKey].ports;sfp=(sfp==null?modelSfp(modelKey):sfp);const d={};for(let i=1;i<=total;i++)d[i]=blankPort('rj45');for(let i=1;i<=sfp;i++)d[100+i]=blankPort('sfp');return d;}
 function layer1(p){return p.cable==='yes'?'Cable':p.cable==='no'?'Empty':'Unknown';}
 function layer2(p){return p.link==='up'?'Up':p.link==='down'?'Down':p.link==='err'?'Err':'Unknown';}
 function badge(text,cls){return `<span class="badge ${cls}">${text}</span>`;}
@@ -1031,7 +1094,8 @@ function renderPorts(){
   rj45Top.className='rj45-grid '+(is24?'ports-24':'ports-48');
   if(is24){for(let i=1;i<=24;i++)rj45Top.appendChild(portDom(i,db[i]));rj45Bottom.style.display='none';}
   else{rj45Bottom.style.display='grid';rj45Bottom.className='rj45-grid ports-48';for(let i=1;i<=24;i++)rj45Top.appendChild(portDom(i,db[i]));for(let i=25;i<=48;i++)rj45Bottom.appendChild(portDom(i,db[i]));}
-  for(let i=1;i<=4;i++)uplinks.appendChild(uplinkDom(i,db[100+i]));
+  for(let i=1;i<=SFP;i++)uplinks.appendChild(uplinkDom(i,db[100+i]));
+  uplinks.style.display=SFP?'':'none';
 }
 function updateStats(){
   let up=0,plug=0,none=0,shut=0,poegreen=0,poedenied=0,poefault=0,poeadm=0;
@@ -1046,7 +1110,7 @@ function renderTable(){
   tbody.innerHTML='';
   const rows=[];
   for(let i=1;i<=N;i++)rows.push({id:i,kind:'RJ45',p:db[i]});
-  for(let i=1;i<=4;i++)rows.push({id:100+i,kind:'SFP',p:db[100+i]});
+  for(let i=1;i<=SFP;i++)rows.push({id:100+i,kind:'SFP',p:db[100+i]});
   for(const r of rows){
     const p=r.p, txt=`${portLabel(r.id)} ${Object.values(p).join(' ')}`.toLowerCase();
     const state=(p.admin==='down')?'shutdown':(p.link==='up')?'up':(p.cable==='yes')?'plug':'none';
@@ -1079,7 +1143,7 @@ function setFields(id){
   const sfp=$('media-type').value==='sfp';
   $('fiber-mode').disabled=!sfp;$('fiber-std').disabled=!sfp;$('fiber-color').disabled=!sfp;
 }
-function load(i){if(i<1||(i>N&&i<101)||i>104)return;selected=i;setFields(i);renderPorts();renderTable();}
+function load(i){if(i<1||(i>N&&i<101)||i>100+SFP)return;selected=i;setFields(i);renderPorts();renderTable();}
 function save(){
   const id=selected;
   db[id]={...db[id],
@@ -1099,14 +1163,14 @@ function clearFields(){
 function nextPort(){load(Math.min(N,selected+1));}
 
 /* ================= SITES & SWITCHES ================= */
-function makeSwitch(closet,name,modelKey){return {id:uid('sw'),closet:closet||'',name:name||'SW1',model:modelKey||'GEN-48',db:buildDb(modelKey||'GEN-48')};}
-function makeSite(name){const sw=makeSwitch('','SW1','GEN-48');const now=Date.now();return {id:uid('st'),name:name||'Site 1',switches:{[sw.id]:sw},activeSwitch:sw.id,inventory:[],archived:false,createdAt:now,updatedAt:now};}
+function makeSwitch(closet,name,modelKey){const mk=modelKey||'GEN-48';const sfp=modelSfp(mk);return {id:uid('sw'),closet:closet||'',name:name||'SW1',model:mk,modelNum:'',sfp:sfp,db:buildDb(mk,sfp)};}
+function makeSite(name){const sw=makeSwitch('','SW1','GEN-48');const now=Date.now();return {id:uid('st'),name:name||'Site 1',switches:{[sw.id]:sw},activeSwitch:sw.id,switchTrash:[],inventory:[],archived:false,createdAt:now,updatedAt:now};}
 function freshState(){const s=makeSite('Site 1');return {sites:{[s.id]:s},activeSite:s.id,settings:{clockEnabled:false,poeVisible:false},time:{active:null,entries:[],trash:[]}};}
 function touchSite(){const s=curSite();if(s)s.updatedAt=Date.now();}
-function ensureDb(sw){const total=models[sw.model].ports;for(let i=1;i<=total;i++)if(!sw.db[i])sw.db[i]=blankPort('rj45');for(let i=101;i<=104;i++)if(!sw.db[i])sw.db[i]=blankPort('sfp');}
+function ensureDb(sw){if(typeof sw.modelNum!=='string')sw.modelNum='';if(typeof sw.sfp!=='number')sw.sfp=modelSfp(sw.model);const total=models[sw.model].ports;for(let i=1;i<=total;i++)if(!sw.db[i])sw.db[i]=blankPort('rj45');for(let i=1;i<=sw.sfp;i++)if(!sw.db[100+i])sw.db[100+i]=blankPort('sfp');}
 function migrateLegacy(d){
-  const sw={id:uid('sw'),closet:'',name:'SW1',model:d.model||'GEN-48',db:(d.db&&Object.keys(d.db).length)?d.db:buildDb(d.model||'GEN-48')};
-  const site={id:uid('st'),name:d.site||'Site 1',switches:{[sw.id]:sw},activeSwitch:sw.id,inventory:Array.isArray(d.inventory)?d.inventory:(Array.isArray(d.inv)?d.inv:[]),archived:false,createdAt:Date.now(),updatedAt:Date.now()};
+  const sw={id:uid('sw'),closet:'',name:'SW1',model:d.model||'GEN-48',modelNum:(typeof d.modelNum==='string'?d.modelNum:''),sfp:(typeof d.sfp==='number'?d.sfp:modelSfp(d.model||'GEN-48')),db:(d.db&&Object.keys(d.db).length)?d.db:buildDb(d.model||'GEN-48')};
+  const site={id:uid('st'),name:d.site||'Site 1',switches:{[sw.id]:sw},activeSwitch:sw.id,switchTrash:[],inventory:Array.isArray(d.inventory)?d.inventory:(Array.isArray(d.inv)?d.inv:[]),archived:false,createdAt:Date.now(),updatedAt:Date.now()};
   return {sites:{[site.id]:site},activeSite:site.id};
 }
 function updateSiteLabel(){
@@ -1156,11 +1220,12 @@ function activateSwitch(swId){
   const site=curSite();if(!site.switches[swId])return;
   site.activeSwitch=swId;
   const sw=site.switches[swId];ensureDb(sw);
-  model=sw.model;N=models[model].ports;db=sw.db;selected=1;
+  model=sw.model;N=models[model].ports;SFP=swSfp(sw);db=sw.db;selected=1;
   $('model-select').value=model;
-  $('chassis-title').textContent=models[model].name;
-  $('portCount').textContent=`${N} RJ45 + 4 SFP`;
-  renderSwitchSelect();renderClosetNav();updateSiteLabel();
+  $('sfp-select').value=String(SFP);
+  $('chassis-title').textContent=(sw.modelNum||models[model].name);
+  $('portCount').textContent=`${N} RJ45 + ${SFP} SFP`;
+  renderSwitchSelect();renderClosetNav();renderSwitchTrash();updateSiteLabel();
   renderPorts();renderTable();setFields(selected);
 }
 function activateSite(siteId){
@@ -1177,7 +1242,7 @@ function activateSite(siteId){
 /* site CRUD */
 function addSite(){askName('New site name','',function(name){const s=makeSite((name||'').trim()||('Site '+(Object.keys(STATE.sites).length+1)));STATE.sites[s.id]=s;activateSite(s.id);persist();});}
 function renameSite(){const site=curSite();askName('Rename site',site.name,function(name){site.name=(name||'').trim()||site.name;touchSite();renderSiteSelect();updateSiteLabel();invClear();invRender();persist();});}
-function delSite(){if(Object.keys(STATE.sites).length<=1){alert('You need at least one site.');return;}const site=curSite();if(!confirm('Delete site "'+site.name+'" and everything in it (switches, ports, inventory)?'))return;delete STATE.sites[STATE.activeSite];STATE.activeSite=Object.keys(STATE.sites)[0];activateSite(STATE.activeSite);persist();}
+function delSite(){if(Object.keys(STATE.sites).length<=1){toast('You need at least one site.');return;}const site=curSite();askConfirm('Delete site "'+site.name+'" and everything in it (switches, ports, inventory)?',function(){delete STATE.sites[STATE.activeSite];STATE.activeSite=Object.keys(STATE.sites)[0];activateSite(STATE.activeSite);persist();},'Delete');}
 /* switch modal + CRUD */
 let swEditing=null;
 function renderClosetChips(){
@@ -1189,26 +1254,64 @@ function renderClosetChips(){
 function openSwitchModal(editId){
   swEditing=editId||null;
   $('sw-model').innerHTML=$('model-select').innerHTML;
-  if(swEditing){const sw=curSite().switches[swEditing];$('sw-modal-title').textContent='Edit Switch';$('sw-closet').value=sw.closet;$('sw-name').value=sw.name;$('sw-model').value=sw.model;}
-  else{$('sw-modal-title').textContent='Add Switch';$('sw-closet').value=curSwitch()?curSwitch().closet:'';$('sw-name').value='SW'+(Object.keys(curSite().switches).length+1);$('sw-model').value='GEN-48';}
+  if(swEditing){const sw=curSite().switches[swEditing];$('sw-modal-title').textContent='Edit Switch';$('sw-closet').value=sw.closet;$('sw-name').value=sw.name;$('sw-model').value=sw.model;$('sw-modelnum').value=sw.modelNum||'';}
+  else{$('sw-modal-title').textContent='Add Switch';$('sw-closet').value=curSwitch()?curSwitch().closet:'';$('sw-name').value='SW'+(Object.keys(curSite().switches).length+1);$('sw-model').value='GEN-48';$('sw-modelnum').value='';}
   renderClosetChips();
   $('sw-modal').classList.remove('hidden');
 }
 function saveSwitch(){
-  const closet=$('sw-closet').value.trim(),name=$('sw-name').value.trim()||'SW',mdl=$('sw-model').value,site=curSite();
-  if(swEditing){const sw=site.switches[swEditing];sw.closet=closet;sw.name=name;if(sw.model!==mdl){sw.model=mdl;ensureDb(sw);}}
-  else{const sw=makeSwitch(closet,name,mdl);site.switches[sw.id]=sw;site.activeSwitch=sw.id;}
+  const closet=$('sw-closet').value.trim(),name=$('sw-name').value.trim()||'SW',mdl=$('sw-model').value,mnum=$('sw-modelnum').value.trim(),site=curSite();
+  if(swEditing){const sw=site.switches[swEditing];sw.closet=closet;sw.name=name;sw.modelNum=mnum;if(sw.model!==mdl){sw.model=mdl;ensureDb(sw);}}
+  else{const sw=makeSwitch(closet,name,mdl);sw.modelNum=mnum;site.switches[sw.id]=sw;site.activeSwitch=sw.id;}
   $('sw-modal').classList.add('hidden');
   touchSite();activateSwitch(site.activeSwitch);persist();
 }
 function delSwitch(){
   const site=curSite();
-  if(Object.keys(site.switches).length<=1){alert('A site needs at least one switch.');return;}
+  if(Object.keys(site.switches).length<=1){toast('A site needs at least one switch.');return;}
   const sw=curSwitch();
-  if(!confirm('Delete switch "'+(sw.closet?sw.closet+' / ':'')+sw.name+'" and its ports?'))return;
-  delete site.switches[site.activeSwitch];
-  site.activeSwitch=Object.keys(site.switches)[0];
-  touchSite();activateSwitch(site.activeSwitch);persist();
+  askConfirm('Delete switch "'+(sw.closet?sw.closet+' / ':'')+sw.name+'"? You can restore it from Recently deleted.',function(){
+    const id=site.activeSwitch, removed=site.switches[id];
+    if(!removed)return;
+    if(!Array.isArray(site.switchTrash))site.switchTrash=[];
+    removed._deletedAt=Date.now();
+    site.switchTrash.unshift(removed);
+    if(site.switchTrash.length>25)site.switchTrash.length=25;
+    delete site.switches[id];
+    site.activeSwitch=Object.keys(site.switches)[0];
+    const na=site.switches[site.activeSwitch];
+    if(closetFilter!==null && na && (na.closet||'(no closet)')!==closetFilter)closetFilter=null;
+    touchSite();activateSwitch(site.activeSwitch);persist();
+    toast('Switch moved to Recently deleted.');
+  },'Delete');
+}
+function restoreSwitch(id){
+  const site=curSite();if(!Array.isArray(site.switchTrash))return;
+  const i=site.switchTrash.findIndex(s=>s.id===id);if(i<0)return;
+  const sw=site.switchTrash.splice(i,1)[0];delete sw._deletedAt;
+  if(site.switches[sw.id])sw.id=uid('sw');
+  ensureDb(sw);
+  site.switches[sw.id]=sw;site.activeSwitch=sw.id;closetFilter=null;
+  touchSite();activateSwitch(sw.id);persist();
+  toast('Switch restored.');
+}
+function purgeSwitch(id){
+  askConfirm('Permanently delete this switch and its ports? This cannot be undone.',function(){
+    const site=curSite();site.switchTrash=(site.switchTrash||[]).filter(s=>s.id!==id);persist();renderSwitchTrash();
+  },'Delete');
+}
+function renderSwitchTrash(){
+  const site=curSite(),panel=$('sw-trash-panel'),box=$('sw-trash'),c=$('sw-trash-count');
+  if(!panel)return;
+  const list=Array.isArray(site.switchTrash)?site.switchTrash:[];
+  if(!list.length){panel.style.display='none';panel.open=false;box.innerHTML='';return;}
+  panel.style.display='';
+  c.textContent=list.length+(list.length===1?' switch':' switches');
+  box.innerHTML=list.map(function(sw){
+    const ports=Object.values(sw.db||{}).filter(function(p){return p&&(p.cable!=='unknown'||p.link!=='unknown'||(p.desc&&p.desc.length)||(p.device&&p.device.length)||p.admin==='down');}).length;
+    const title=(sw.closet?sw.closet+' / ':'')+sw.name+(sw.modelNum?' ('+sw.modelNum+')':'');
+    return '<div class="te-row"><div class="te-main"><div class="te-proj">'+esc(title)+'</div><div class="te-when">'+ports+' port'+(ports===1?'':'s')+' logged'+(sw._deletedAt?' &middot; deleted '+fmtDate(sw._deletedAt):'')+'</div><div class="te-acts"><button class="btn tiny" data-swrestore="'+sw.id+'">Restore</button><button class="btn tiny" data-swpurge="'+sw.id+'">Delete forever</button></div></div></div>';
+  }).join('');
 }
 
 /* ================= INVENTORY ================= */
@@ -1230,7 +1333,7 @@ function invFill(rec){
 function invClear(){invEditing=null;$('inv-form-title').textContent='Add Unit';$('inv-add').textContent='Add Unit';invFill(invBlank());if(curSite())$('inv-site').value=curSite().name;$('inv-item').focus();}
 function invAddOrUpdate(){
   const data=invReadForm();
-  if(!data.item && !data.serial && !data.mac){alert('Enter at least an item, serial, or MAC.');return;}
+  if(!data.item && !data.serial && !data.mac){toast('Enter at least an item, serial, or MAC.');return;}
   if(invEditing){
     const idx=inv.findIndex(x=>x.id===invEditing);
     if(idx>=0)inv[idx]={...inv[idx],...data};
@@ -1249,7 +1352,7 @@ function invLoadRow(id){
   invFill(rec);window.scrollTo({top:0,behavior:'smooth'});
 }
 function invToggleDone(id){const rec=inv.find(x=>x.id===id);if(!rec)return;rec.done=rec.done==='yes'?'no':'yes';touchSite();invRender();persist();}
-function invDelete(id){if(!confirm('Delete this unit?'))return;inv=inv.filter(x=>x.id!==id);if(invEditing===id)invClear();touchSite();invRender();persist();}
+function invDelete(id){askConfirm('Delete this unit?',function(){inv=inv.filter(x=>x.id!==id);if(invEditing===id)invClear();touchSite();invRender();persist();},'Delete');}
 function invRender(){
   const q=$('inv-search').value.toLowerCase().trim(), f=$('inv-filter').value;
   invTbody.innerHTML='';
@@ -1368,7 +1471,7 @@ function parseScan(text){
   return out;
 }
 function openScanner(targetId,rapid){
-  if(typeof Html5Qrcode==='undefined'){alert('Scanner library did not load. Check your connection, or type the value manually.');return;}
+  if(typeof Html5Qrcode==='undefined'){toast('Scanner library did not load. Check your connection, or type the value manually.');return;}
   scanRapid=!!rapid;scanTarget=targetId;
   scanHandled=false;scanLastCode=null;scanLastTime=0;scanAdded=[];scanSeen=new Set();
   const labelMap={'inv-serial':'Scan Serial','inv-mac':'Scan MAC'};
@@ -1434,7 +1537,7 @@ function makeRowsFor(sw){
   const total=models[sw.model].ports, rows=[PORT_HDR.slice()];
   const push=i=>{const p=sw.db[i];if(!p)return;rows.push([portLabel(i),ifName(i),i>=101?'SFP':'RJ45',p.cable,p.link,p.desc,p.vlan,p.portType,p.deviceType,p.media,p.ctype,p.speed,p.poe,p.admin,p.neighbor,p.neighborPort,p.mac,p.lastseen,p.tech,p.fiberMode,p.fiberStd,p.fiberColor,p.patchColor,p.notes,p.device]);};
   for(let i=1;i<=total;i++)push(i);
-  for(let i=101;i<=104;i++)push(i);
+  for(let i=1;i<=swSfp(sw);i++)push(100+i);
   return rows;
 }
 function swUpCount(sw){let up=0;const total=models[sw.model].ports;for(let i=1;i<=total;i++){const p=sw.db[i];if(p&&p.admin!=='down'&&p.link==='up')up++;}return up;}
@@ -1475,9 +1578,9 @@ function exportPorts(scope){
     ws['!cols']=PORT_HDR.map(()=>({wch:16}));
     XLSX.utils.book_append_sheet(wb,ws,sheetName((sw.closet?sw.closet+' ':'')+sw.name,used));
   });
-  const summary=[['Metric','Value'],['Site',site.name],['Scope',scope],['Switches',list.length]];
-  list.forEach(sw=>summary.push([(sw.closet?sw.closet+' / ':'')+sw.name,sw.model+'  (up: '+swUpCount(sw)+')']));
-  const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:22},{wch:28}];
+  const summary=[['Metric','Value'],['Site',site.name],['Scope',scope],['Switches',list.length],[],['Switch','Layout','Model #','SFP','Ports Up']];
+  list.forEach(sw=>summary.push([(sw.closet?sw.closet+' / ':'')+sw.name,models[sw.model].name,sw.modelNum||'',swSfp(sw),swUpCount(sw)]));
+  const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:22},{wch:20},{wch:18},{wch:6},{wch:8}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
   const tag=scope==='switch'?((cur.closet?cur.closet+'_':'')+cur.name):scope;
   saveWorkbook(wb,'big_kit_ports_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'_'+tag.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
@@ -1505,7 +1608,7 @@ function applyState(d){
   else if(d&&d.sites)STATE=d;
   else STATE=migrateLegacy(d||{});
   if(!STATE.sites||!Object.keys(STATE.sites).length)STATE=freshState();
-  Object.values(STATE.sites).forEach(s=>{const now=Date.now();if(typeof s.createdAt!=='number')s.createdAt=now;if(typeof s.updatedAt!=='number')s.updatedAt=s.createdAt;if(typeof s.archived!=='boolean')s.archived=false;});
+  Object.values(STATE.sites).forEach(s=>{const now=Date.now();if(typeof s.createdAt!=='number')s.createdAt=now;if(typeof s.updatedAt!=='number')s.updatedAt=s.createdAt;if(typeof s.archived!=='boolean')s.archived=false;if(!Array.isArray(s.switchTrash))s.switchTrash=[];});
   if(!STATE.activeSite||!STATE.sites[STATE.activeSite])STATE.activeSite=Object.keys(STATE.sites)[0];
   if(!STATE.settings||typeof STATE.settings!=='object')STATE.settings={};
   if(typeof STATE.settings.clockEnabled!=='boolean')STATE.settings.clockEnabled=false;
@@ -1521,24 +1624,25 @@ function loadLocal(){
     reader.onload=ev=>{try{
       applyState(JSON.parse(ev.target.result));
       renderSiteSelect();activateSite(STATE.activeSite);persist();
-    }catch(err){alert('Could not load file: '+err.message);}};
+    }catch(err){toast('Could not load file: '+err.message);}};
     reader.readAsText(file);};
   input.click();
 }
 function resetAll(){
-  if(!confirm('Reset everything? This clears ALL sites, switches, ports and inventory on this device. (Your time logs and settings are kept.)'))return;
-  const keepSettings=STATE.settings,keepTime=STATE.time;
-  STATE=freshState();
-  if(keepSettings)STATE.settings=keepSettings;
-  if(keepTime)STATE.time=keepTime;
-  renderSiteSelect();activateSite(STATE.activeSite);applySettings();showTab(visibleTabs()[0]);persist();
+  askConfirm('Reset everything? This clears ALL sites, switches, ports and inventory on this device. (Your time logs and settings are kept.)',function(){
+    const keepSettings=STATE.settings,keepTime=STATE.time;
+    STATE=freshState();
+    if(keepSettings)STATE.settings=keepSettings;
+    if(keepTime)STATE.time=keepTime;
+    renderSiteSelect();activateSite(STATE.activeSite);applySettings();showTab(visibleTabs()[0]);persist();
+  },'Reset');
 }
 
 /* ================= PROJECTS ================= */
 function fmtDate(ts){if(!ts)return '\u2014';return new Date(ts).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
 function windowStart(win){const now=new Date();if(win==='7')return Date.now()-7*864e5;if(win==='30')return Date.now()-30*864e5;if(win==='quarter'){const q=Math.floor(now.getMonth()/3)*3;return new Date(now.getFullYear(),q,1).getTime();}if(win==='year')return new Date(now.getFullYear(),0,1).getTime();return 0;}
 function portLogged(p){return !!(p&&(p.cable!=='unknown'||p.link!=='unknown'||(p.desc&&p.desc.length)||(p.device&&p.device.length)||p.admin==='down'));}
-function portsLoggedCount(site){let n=0;Object.values(site.switches).forEach(sw=>{const tot=models[sw.model].ports;for(let i=1;i<=tot;i++)if(portLogged(sw.db[i]))n++;for(let i=101;i<=104;i++)if(portLogged(sw.db[i]))n++;});return n;}
+function portsLoggedCount(site){let n=0;Object.values(site.switches).forEach(sw=>{const tot=models[sw.model].ports;for(let i=1;i<=tot;i++)if(portLogged(sw.db[i]))n++;for(let i=1;i<=swSfp(sw);i++)if(portLogged(sw.db[100+i]))n++;});return n;}
 function exportSite(siteId){
   const site=STATE.sites[siteId];if(!site)return;
   const wb=XLSX.utils.book_new(),used=new Set();
@@ -1546,14 +1650,15 @@ function exportSite(siteId){
   const ir=invRowsFrom(site.inventory);
   const wsi=XLSX.utils.aoa_to_sheet(dropBlankColumns(ir));wsi['!cols']=ir[0].map(()=>({wch:18}));
   XLSX.utils.book_append_sheet(wb,wsi,'Inventory');
-  const summary=[['Metric','Value'],['Site',site.name],['Switches',Object.keys(site.switches).length],['Ports logged',portsLoggedCount(site)],['Inventory units',site.inventory.length],['Updated',fmtDate(site.updatedAt)],['Created',fmtDate(site.createdAt)]];
-  const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:20},{wch:28}];
+  const summary=[['Metric','Value'],['Site',site.name],['Switches',Object.keys(site.switches).length],['Ports logged',portsLoggedCount(site)],['Inventory units',site.inventory.length],['Updated',fmtDate(site.updatedAt)],['Created',fmtDate(site.createdAt)],[],['Switch','Layout','Model #','SFP']];
+  Object.values(site.switches).forEach(sw=>summary.push([(sw.closet?sw.closet+' / ':'')+sw.name,models[sw.model].name,sw.modelNum||'',swSfp(sw)]));
+  const ws2=XLSX.utils.aoa_to_sheet(summary);ws2['!cols']=[{wch:20},{wch:20},{wch:18},{wch:6}];
   XLSX.utils.book_append_sheet(wb,ws2,'Summary');
   saveWorkbook(wb,'big_kit_site_'+site.name.replace(/[^A-Za-z0-9]+/g,'_')+'.xlsx');
 }
 function openProject(id){if(!STATE.sites[id])return;activateSite(id);persist();showTab('ports');}
 function renameSiteById(id){const s=STATE.sites[id];if(!s)return;askName('Rename site',s.name,function(name){s.name=(name||'').trim()||s.name;s.updatedAt=Date.now();renderSiteSelect();if(id===STATE.activeSite){updateSiteLabel();invClear();invRender();}renderProjects();persist();});}
-function delSiteById(id){if(Object.keys(STATE.sites).length<=1){alert('You need at least one site.');return;}const s=STATE.sites[id];if(!s)return;if(!confirm('Delete site "'+s.name+'" and everything in it (switches, ports, inventory)?'))return;const wasActive=(id===STATE.activeSite);delete STATE.sites[id];if(wasActive){STATE.activeSite=Object.keys(STATE.sites)[0];renderSiteSelect();activateSite(STATE.activeSite);}else renderSiteSelect();renderProjects();persist();}
+function delSiteById(id){if(Object.keys(STATE.sites).length<=1){toast('You need at least one site.');return;}const s=STATE.sites[id];if(!s)return;askConfirm('Delete site "'+s.name+'" and everything in it (switches, ports, inventory)?',function(){const wasActive=(id===STATE.activeSite);delete STATE.sites[id];if(wasActive){STATE.activeSite=Object.keys(STATE.sites)[0];renderSiteSelect();activateSite(STATE.activeSite);}else renderSiteSelect();renderProjects();persist();},'Delete');}
 function toggleArchive(id){const s=STATE.sites[id];if(!s)return;s.archived=!s.archived;renderSiteSelect();renderProjects();persist();}
 function renderProjects(){
   const q=$('proj-search').value.toLowerCase().trim(),win=$('proj-filter').value,status=$('proj-status').value,sort=$('proj-sort').value,start=windowStart(win);
@@ -1595,13 +1700,23 @@ $('btn-apply').onclick=e=>{e.preventDefault();save();};
 $('btn-clear').onclick=e=>{e.preventDefault();clearFields();};
 $('btn-next').onclick=e=>{e.preventDefault();nextPort();};
 $('btn-save').onclick=saveLocal;
-$('btn-load').onclick=loadLocal;
-$('btn-reset').onclick=resetAll;
+$('btn-save2').onclick=saveLocal;
+$('btn-load2').onclick=loadLocal;
+$('btn-reset2').onclick=resetAll;
 $('export-ports').addEventListener('change',e=>{const v=e.target.value;if(v){exportPorts(v);e.target.selectedIndex=0;}});
 $('btn-export-inv').onclick=exportInventory;
-$('model-select').addEventListener('change',()=>{const sw=curSwitch();sw.model=$('model-select').value;model=sw.model;N=models[model].ports;ensureDb(sw);$('chassis-title').textContent=models[model].name;$('portCount').textContent=`${N} RJ45 + 4 SFP`;if(selected>N&&selected<101)selected=1;renderPorts();renderTable();setFields(selected);renderSwitchSelect();updateSiteLabel();touchSite();persist();});
+$('model-select').addEventListener('change',()=>{const sw=curSwitch();sw.model=$('model-select').value;model=sw.model;N=models[model].ports;sw.sfp=modelSfp(model);SFP=sw.sfp;$('sfp-select').value=String(SFP);ensureDb(sw);$('chassis-title').textContent=(sw.modelNum||models[model].name);$('portCount').textContent=`${N} RJ45 + ${SFP} SFP`;if(selected>N&&selected<101)selected=1;if(selected>100+SFP)selected=1;renderPorts();renderTable();setFields(selected);renderSwitchSelect();updateSiteLabel();touchSite();persist();});
+$('sfp-select').addEventListener('change',()=>{const sw=curSwitch();sw.sfp=parseInt($('sfp-select').value,10)||0;SFP=sw.sfp;ensureDb(sw);$('portCount').textContent=`${N} RJ45 + ${SFP} SFP`;if(selected>100+SFP)selected=1;renderPorts();renderTable();setFields(selected);touchSite();persist();});
 $('site-select').addEventListener('change',e=>{activateSite(e.target.value);persist();});
 let nameCb=null;
+let _toastT=null;
+function toast(msg){const t=$('toast');if(!t)return;t.textContent=msg;t.classList.add('show');if(_toastT)clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+let confirmCb=null;
+function askConfirm(msg,onYes,yesLabel){confirmCb=onYes;$('confirm-msg').textContent=msg;$('confirm-yes').textContent=yesLabel||'Yes';$('confirm-modal').classList.remove('hidden');}
+function confirmClose(){$('confirm-modal').classList.add('hidden');confirmCb=null;}
+$('confirm-yes').onclick=function(){const cb=confirmCb;confirmClose();if(cb)cb();};
+$('confirm-no').onclick=confirmClose;
+$('confirm-modal').addEventListener('click',function(e){if(e.target.id==='confirm-modal')confirmClose();});
 function askName(title,initial,cb){nameCb=cb;$('name-title').textContent=title;$('name-input').value=initial||'';$('name-modal').classList.remove('hidden');setTimeout(function(){try{$('name-input').focus();}catch(e){}},60);}
 function nameClose(){$('name-modal').classList.add('hidden');nameCb=null;}
 $('name-save').onclick=function(){const v=$('name-input').value;const cb=nameCb;nameClose();if(cb)cb(v);};
@@ -1615,6 +1730,7 @@ $('switch-select').addEventListener('change',e=>{activateSwitch(e.target.value);
 $('switch-add').onclick=()=>openSwitchModal(null);
 $('switch-edit').onclick=()=>openSwitchModal(curSite().activeSwitch);
 $('switch-del').onclick=delSwitch;
+$('sw-trash').addEventListener('click',function(e){const t=e.target;if(t.dataset.swrestore)restoreSwitch(t.dataset.swrestore);else if(t.dataset.swpurge)purgeSwitch(t.dataset.swpurge);});
 $('sw-save').onclick=saveSwitch;
 $('sw-cancel').onclick=()=>$('sw-modal').classList.add('hidden');
 $('sw-modal').addEventListener('click',e=>{if(e.target.id==='sw-modal')$('sw-modal').classList.add('hidden');});
@@ -1624,7 +1740,7 @@ $('proj-filter').addEventListener('change',renderProjects);
 $('proj-status').addEventListener('change',renderProjects);
 $('proj-sort').addEventListener('change',renderProjects);
 $('proj-list').addEventListener('click',e=>{const t=e.target;if(t.dataset.open)openProject(t.dataset.open);else if(t.dataset.exp)exportSite(t.dataset.exp);else if(t.dataset.ren)renameSiteById(t.dataset.ren);else if(t.dataset.arch)toggleArchive(t.dataset.arch);else if(t.dataset.del)delSiteById(t.dataset.del);});
-$('port-id').addEventListener('change',e=>{const v=e.target.value.trim().toLowerCase();let n=v.startsWith('sfp')?100+parseInt(v.slice(3)||'1',10):parseInt(v||'1',10);if(isNaN(n))n=1;load(Math.max(1,Math.min(104,n)));});
+$('port-id').addEventListener('change',e=>{const v=e.target.value.trim().toLowerCase();let n=v.startsWith('sfp')?100+parseInt(v.slice(3)||'1',10):parseInt(v||'1',10);if(isNaN(n))n=1;load(Math.max(1,Math.min(100+SFP,n)));});
 $('search').addEventListener('input',renderTable);
 $('filter').addEventListener('change',renderTable);
 $('media-type').addEventListener('change',()=>{const sfp=$('media-type').value==='sfp';$('fiber-mode').disabled=!sfp;$('fiber-std').disabled=!sfp;$('fiber-color').disabled=!sfp;});
@@ -1707,7 +1823,7 @@ let clkTimer=null,clkSort='date',clkMEditing=null;
 function clkStartTimer(){if(clkTimer)return;clkTimer=setInterval(()=>{if(STATE.time.active&&window.currentTab==='clock'){$('clk-time').textContent=fmtClock(Date.now()-STATE.time.active.start);clkTotals();clkWarn();}else{clearInterval(clkTimer);clkTimer=null;}},1000);}
 function clkToggle(){if(STATE.time.active)clkOut();else clkIn();}
 function clkIn(){if(STATE.time.active)return;STATE.time.active={start:Date.now(),project:$('clk-project').value.trim(),notes:$('clk-notes').value.trim()};persist();clkRender();}
-function clkOut(){const a=STATE.time.active;if(!a)return;const project=$('clk-project').value.trim();if(!project){alert('Add a project name before clocking out.');$('clk-project').focus();return;}STATE.time.entries.push({id:uid('t'),start:a.start,end:Date.now(),project:project,notes:$('clk-notes').value.trim()});STATE.time.active=null;$('clk-project').value='';$('clk-notes').value='';persist();clkRender();}
+function clkOut(){const a=STATE.time.active;if(!a)return;const project=$('clk-project').value.trim();if(!project){toast('Add a project name before clocking out.');$('clk-project').focus();return;}STATE.time.entries.push({id:uid('t'),start:a.start,end:Date.now(),project:project,notes:$('clk-notes').value.trim()});STATE.time.active=null;$('clk-project').value='';$('clk-notes').value='';persist();clkRender();}
 function clkRender(){
   const a=STATE.time.active,t=$('clk-toggle');
   if(a){
@@ -1729,23 +1845,26 @@ function clkWarn(){const w=$('clk-warn'),a=STATE.time.active;if(!a){w.innerHTML=
 function clkManualAdd(){
   const date=$('clk-m-date').value,st=$('clk-m-start').value,en=$('clk-m-end').value,project=$('clk-m-project').value.trim();
   const overnight=$('clk-m-overnight').classList.contains('on');
-  if(!date){alert('Pick a date.');return;}
-  if(!st||!en){alert('Enter start and end times.');return;}
-  if(!project){alert('Enter a project.');return;}
+  if(!date){toast('Pick a date.');return;}
+  if(!st||!en){toast('Enter start and end times.');return;}
+  if(!project){toast('Enter a project.');return;}
   let start=new Date(date+'T'+st).getTime(),end=new Date(date+'T'+en).getTime();
-  if(isNaN(start)||isNaN(end)){alert('Could not read the date/time.');return;}
+  if(isNaN(start)||isNaN(end)){toast('Could not read the date/time.');return;}
   if(overnight){end+=86400000;}
-  else if(end<=start){if(!confirm('End is not after start. Count the end time as the next day (crosses midnight)?'))return;end+=86400000;}
-  if(end-start>12*3600000){if(!confirm('That entry is over 12 hours. Add it anyway?'))return;}
-  if(clkMEditing){const i=STATE.time.entries.findIndex(e=>e.id===clkMEditing);if(i>=0)STATE.time.entries[i]={...STATE.time.entries[i],start,end,project,notes:$('clk-m-notes').value.trim()};clkMClear();}
-  else{STATE.time.entries.push({id:uid('t'),start,end,project,notes:$('clk-m-notes').value.trim()});$('clk-m-start').value='';$('clk-m-end').value='';$('clk-m-notes').value='';$('clk-m-overnight').classList.remove('on');}
-  persist();clkRender();
+  else if(end<=start){toast('End is before start \u2014 turn on "Ends next day" for an overnight shift.');return;}
+  const finalize=function(){
+    if(clkMEditing){const i=STATE.time.entries.findIndex(e=>e.id===clkMEditing);if(i>=0)STATE.time.entries[i]={...STATE.time.entries[i],start,end,project,notes:$('clk-m-notes').value.trim()};clkMClear();}
+    else{STATE.time.entries.push({id:uid('t'),start,end,project,notes:$('clk-m-notes').value.trim()});$('clk-m-start').value='';$('clk-m-end').value='';$('clk-m-notes').value='';$('clk-m-overnight').classList.remove('on');}
+    persist();clkRender();
+  };
+  if(end-start>12*3600000){askConfirm('That entry is over 12 hours. Add it anyway?',finalize,'Add');}
+  else finalize();
 }
 function clkMClear(){clkMEditing=null;$('clk-m-title').textContent='Add manual time';$('clk-m-add').textContent='Add Entry';$('clk-m-date').value=todayStr();$('clk-m-start').value='';$('clk-m-end').value='';$('clk-m-project').value='';$('clk-m-notes').value='';$('clk-m-overnight').classList.remove('on');}
 function clkEdit(id){const e=STATE.time.entries.find(x=>x.id===id);if(!e)return;clkMEditing=id;$('clk-m-title').textContent='Edit Entry';$('clk-m-add').textContent='Update';const p=n=>String(n).padStart(2,'0'),d=new Date(e.start),de=new Date(e.end);$('clk-m-date').value=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());$('clk-m-start').value=p(d.getHours())+':'+p(d.getMinutes());$('clk-m-end').value=p(de.getHours())+':'+p(de.getMinutes());$('clk-m-overnight').classList.toggle('on',!sameDay(e.start,e.end));$('clk-m-project').value=e.project||'';$('clk-m-notes').value=e.notes||'';const pan=$('clk-m-panel');if(pan)pan.open=true;try{window.scrollTo({top:0,behavior:'smooth'});}catch(x){}}
 function clkDelete(id){const i=STATE.time.entries.findIndex(e=>e.id===id);if(i<0)return;const e=STATE.time.entries.splice(i,1)[0];e.deletedAt=Date.now();STATE.time.trash.unshift(e);if(clkMEditing===id)clkMClear();persist();clkRender();}
 function clkRestore(id){const i=STATE.time.trash.findIndex(e=>e.id===id);if(i<0)return;const e=STATE.time.trash.splice(i,1)[0];delete e.deletedAt;STATE.time.entries.push(e);persist();clkRender();}
-function clkPurge(id){if(!confirm('Delete this entry permanently?'))return;STATE.time.trash=STATE.time.trash.filter(e=>e.id!==id);persist();clkRender();}
+function clkPurge(id){askConfirm('Delete this entry permanently?',function(){STATE.time.trash=STATE.time.trash.filter(e=>e.id!==id);persist();clkRender();},'Delete');}
 function clkHistory(){
   const box=$('clk-history'),q=($('clk-search').value||'').trim().toLowerCase();
   let list=STATE.time.entries.slice();
@@ -1768,7 +1887,7 @@ function clkTrash(){
 function clkFillExportProjects(){const sel=$('clk-x-project');if(!sel)return;const cur=sel.value;sel.innerHTML=['<option value="">All projects</option>'].concat(clkProjects().map(p=>'<option value="'+esc(p)+'">'+esc(p)+'</option>')).join('');if(cur)sel.value=cur;}
 function clkExportPDF(){
   const J=(window.jspdf&&window.jspdf.jsPDF)?window.jspdf.jsPDF:null;
-  if(!J){alert('PDF library did not load. Open the app online once so it can cache, then try again.');return;}
+  if(!J){toast('PDF library did not load. Open the app online once so it can cache, then try again.');return;}
   const from=$('clk-x-from').value,to=$('clk-x-to').value,proj=$('clk-x-project').value;
   let list=STATE.time.entries.slice();
   const fromTs=from?new Date(from+'T00:00:00').getTime():null,toTs=to?new Date(to+'T23:59:59').getTime():null;
@@ -1776,7 +1895,7 @@ function clkExportPDF(){
   if(toTs!=null)list=list.filter(e=>e.start<=toTs);
   if(proj)list=list.filter(e=>(e.project||'')===proj);
   list.sort((a,b)=>a.start-b.start);
-  if(!list.length){alert('No time entries match that window/project.');return;}
+  if(!list.length){toast('No time entries match that window/project.');return;}
   const doc=new J({unit:'pt',format:'letter'});
   doc.setFontSize(16);doc.text('BIG Kit - Time Report',40,46);
   doc.setFontSize(10);doc.setTextColor(110);
